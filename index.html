@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DrupalZH Links</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="icon.png" alt="icon" width="24" height="24" />
+        <h1>DrupalZH Links</h1>
+      </header>
+
+      <section>
+        <label for="projectSelect"
+          >Project
+          <span class="hint">
+            Manage projects in <a id="openOptions" href="#">Options</a>.
+          </span></label
+        >
+        <select id="projectSelect"></select>
+      </section>
+
+      <section>
+        <div class="row">
+          <button id="toDev" title="Open in Dev">Local</button>
+          <button id="toStaging" title="Open in Staging">Staging</button>
+          <button id="toProd" title="Open in Prod">Production</button>
+          <button id="toLogin" title="Go to Login">Login</button>
+        </div>
+      </section>
+
+      <footer>
+        <small>v0.1</small>
+      </footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

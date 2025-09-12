@@ -1,0 +1,15 @@
+{
+  "name": "DrupalZH Links",
+  "description": "Generate Dev/Staging/Prod links for multiple projects",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["storage", "tabs", "activeTab"],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "icon.png"
+  }
+}

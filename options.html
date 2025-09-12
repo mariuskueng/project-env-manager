@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DrupalZH Links – Options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Projects</h1>
+        <button id="addProject">Add Project</button>
+      </header>
+
+      <section id="projectsContainer"></section>
+
+      <footer>
+        <button id="save">Save</button>
+      </footer>
+    </main>
+
+    <template id="projectTmpl">
+      <div class="project">
+        <div class="row">
+          <label
+            >Project ID
+            <input class="p-id" placeholder="unique-id" />
+          </label>
+          <label
+            >Project Name
+            <input class="p-name" placeholder="My Project" />
+          </label>
+          <button class="remove">Remove</button>
+        </div>
+        <div class="row">
+          <label
+            >Dev URL
+            <input class="p-dev" placeholder="http://localhost:PORT" />
+          </label>
+          <label
+            >Staging URL
+            <input
+              class="p-staging"
+              placeholder="https://staging.example.com"
+            />
+          </label>
+          <label
+            >Prod URL
+            <input class="p-prod" placeholder="https://www.example.com" />
+          </label>
+        </div>
+        <hr />
+      </div>
+    </template>
+
+    <script src="options.js"></script>
+  </body>
+</html>
