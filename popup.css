@@ -59,7 +59,9 @@ button:hover {
 }
 footer {
   margin-top: 10px;
-  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   color: #777;
 }
 .previews {

@@ -3,23 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DrupalZH Links</title>
+    <title>Project ENV Manager</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <main>
       <header>
         <img src="icon.png" alt="icon" width="24" height="24" />
-        <h1>DrupalZH Links</h1>
+        <h1>Project ENV Manager</h1>
       </header>
 
       <section>
-        <label for="projectSelect"
-          >Project
-          <span class="hint">
-            Manage projects in <a id="openOptions" href="#">Options</a>.
-          </span></label
-        >
+        <label for="projectSelect">Select Project</label>
         <select id="projectSelect"></select>
       </section>
 
@@ -33,6 +28,9 @@
       </section>
 
       <footer>
+        <span class="hint">
+          Manage projects in <a id="openOptions" href="#">Options</a>.
+        </span>
         <small>v0.1</small>
       </footer>
     </main>

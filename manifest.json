@@ -1,5 +1,5 @@
 {
-  "name": "DrupalZH Links",
+  "name": "Project ENV Manager",
   "description": "Generate Dev/Staging/Prod links for multiple projects",
   "version": "1.0",
   "manifest_version": 3,
