@@ -4,7 +4,6 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const defaultProjects = [
   {
     id: "zuerich",
-    name: "Zürich",
     environments: {
       dev: "https://zuerich.ddev.site/",
       staging: "https://staging.zuerich.com/de",
@@ -28,13 +27,12 @@ function renderProjects(projects) {
 }
 
 function projectNode(
-  p = { id: "", name: "", environments: { dev: "", staging: "", prod: "" } }
+  p = { id: "", environments: { dev: "", staging: "", prod: "" } }
 ) {
   const tpl = $("#projectTmpl");
   const node = tpl.content.cloneNode(true);
   const root = node.querySelector(".project");
   $(".p-id", root).value = p.id || "";
-  $(".p-name", root).value = p.name || "";
   $(".p-dev", root).value = p.environments?.dev || "";
   $(".p-staging", root).value = p.environments?.staging || "";
   $(".p-prod", root).value = p.environments?.prod || "";
@@ -46,12 +44,11 @@ function readProjects() {
   const projects = [];
   $$("#projectsContainer .project").forEach((root) => {
     const id = $(".p-id", root).value.trim();
-    const name = $(".p-name", root).value.trim();
     const dev = $(".p-dev", root).value.trim();
     const staging = $(".p-staging", root).value.trim();
     const prod = $(".p-prod", root).value.trim();
-    if (!id || !name) return; // skip incomplete rows
-    projects.push({ id, name, environments: { dev, staging, prod } });
+    if (!id) return; // skip incomplete rows
+    projects.push({ id, environments: { dev, staging, prod } });
   });
   return projects;
 }

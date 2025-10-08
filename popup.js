@@ -6,7 +6,6 @@ const defaultConfig = {
   projects: [
     {
       id: "zuerich",
-      name: "Zürich",
       environments: {
         dev: "https://zuerich.ddev.site/",
         staging: "https://staging.zuerich.com/de",
@@ -33,7 +32,7 @@ function populateProjects(projects, selectedProjectId) {
   for (const p of projects) {
     const opt = document.createElement("option");
     opt.value = p.id;
-    opt.textContent = p.name;
+    opt.textContent = p.id;
     if (p.id === selectedProjectId) opt.selected = true;
     select.appendChild(opt);
   }
