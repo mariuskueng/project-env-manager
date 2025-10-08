@@ -24,7 +24,27 @@
       <section id="projectsContainer" class="projects-container"></section>
 
       <footer class="mt-3">
-        <button id="save" class="button is-primary is-light">Save</button>
+        <div
+          class="is-flex is-justify-content-space-between is-align-items-center"
+        >
+          <div class="buttons">
+            <button id="exportConfig" class="button is-info is-small is-light">
+              Export Config
+            </button>
+            <label class="button is-success is-small is-light" for="importFile">
+              Import Config
+            </label>
+            <input
+              type="file"
+              id="importFile"
+              accept=".json"
+              style="display: none"
+            />
+          </div>
+          <button id="save" class="button is-primary is-small is-light">
+            Save
+          </button>
+        </div>
       </footer>
     </main>
 

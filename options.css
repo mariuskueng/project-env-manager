@@ -32,3 +32,8 @@ body {
 .environments-section .button {
   margin-bottom: 0.5rem;
 }
+
+/* Notification positioning */
+.notification {
+  margin-bottom: 1rem;
+}
