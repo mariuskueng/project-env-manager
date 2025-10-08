@@ -6,11 +6,11 @@ const defaultConfig = {
   projects: [
     {
       id: "zuerich",
-      environments: {
-        dev: "https://zuerich.ddev.site/",
-        staging: "https://staging.zuerich.com/de",
-        prod: "https://www.zuerich.com/de",
-      },
+      environments: [
+        { name: "dev", url: "https://zuerich.ddev.site/" },
+        { name: "staging", url: "https://staging.zuerich.com/de" },
+        { name: "prod", url: "https://www.zuerich.com/de" },
+      ],
     },
   ],
 };
@@ -45,10 +45,10 @@ function normalizeHost(h) {
 function isUrlOnProject(url, project) {
   try {
     const srcHost = normalizeHost(new URL(url).host);
-    const envHosts = Object.values(project.environments || {})
-      .map((b) => {
+    const envHosts = (project.environments || [])
+      .map((env) => {
         try {
-          return normalizeHost(new URL(b).host);
+          return normalizeHost(new URL(env.url).host);
         } catch {
           return "";
         }
@@ -92,26 +92,54 @@ function buildUrl(base, currentUrl) {
   }
 }
 
-async function openEnv(envKey) {
+async function openEnv(envName) {
   const { projects } = await getConfig();
   const selectedProjectId = $("#projectSelect").value;
   const project = projects.find((p) => p.id === selectedProjectId);
   if (!project) return;
-  const base = project.environments?.[envKey];
-  if (!base) return;
+
+  const env = project.environments?.find((e) => e.name === envName);
+  if (!env?.url) return;
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.url) return;
 
   const onProject = isUrlOnProject(tab.url, project);
-  const url = onProject ? buildUrl(base, tab.url) : new URL(base).toString();
+  const url = onProject
+    ? buildUrl(env.url, tab.url)
+    : new URL(env.url).toString();
   await chrome.tabs.create({ url });
 }
 
+function renderEnvironmentButtons(project) {
+  const container = $(".environment-buttons");
+  container.innerHTML = "";
+
+  if (!project?.environments?.length) {
+    container.innerHTML =
+      '<p class="has-text-grey is-size-7">No environments configured</p>';
+    return;
+  }
+
+  project.environments.forEach((env) => {
+    const button = document.createElement("button");
+    button.className = "button is-light is-small";
+    button.textContent = env.name.charAt(0).toUpperCase() + env.name.slice(1);
+    button.title = `Open in ${env.name}`;
+    button.addEventListener("click", () => openEnv(env.name));
+    container.appendChild(button);
+  });
+}
+
+function createEnvironmentButtonsContainer() {
+  const existing = $(".row");
+  const container = document.createElement("div");
+  container.className = "row environment-buttons";
+  existing.parentNode.replaceChild(container, existing);
+  return container;
+}
+
 function wireEvents() {
-  $("#toDev").addEventListener("click", () => openEnv("dev"));
-  $("#toStaging").addEventListener("click", () => openEnv("staging"));
-  $("#toProd").addEventListener("click", () => openEnv("prod"));
   $("#toLogin").addEventListener("click", async () => {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -133,9 +161,14 @@ function wireEvents() {
       // ignore
     }
   });
+
   $("#projectSelect").addEventListener("change", async (e) => {
     await chrome.storage.sync.set({ selectedProjectId: e.target.value });
+    const { projects } = await getConfig();
+    const project = projects.find((p) => p.id === e.target.value);
+    renderEnvironmentButtons(project);
   });
+
   $("#openOptions").addEventListener("click", (e) => {
     e.preventDefault();
     chrome.runtime.openOptionsPage();
@@ -155,12 +188,12 @@ function wireEvents() {
       const host = u.host;
       // Heuristic: pick project whose any env host appears in current host
       const match = projects.find((p) => {
-        const envs = p.environments || {};
-        return Object.values(envs).some((b) => {
+        const envs = p.environments || [];
+        return envs.some((env) => {
           try {
             return (
-              new URL(b).host &&
-              host.includes(new URL(b).host.replace(/^www\./, ""))
+              new URL(env.url).host &&
+              host.includes(new URL(env.url).host.replace(/^www\./, ""))
             );
           } catch {
             return false;
@@ -172,10 +205,10 @@ function wireEvents() {
       } else {
         // Fallback: try matching by pathname prefix
         const pathMatch = projects.find((p) => {
-          const envs = p.environments || {};
-          return Object.values(envs).some((b) => {
+          const envs = p.environments || [];
+          return envs.some((env) => {
             try {
-              const envPath = new URL(b).pathname;
+              const envPath = new URL(env.url).pathname;
               return u.pathname.startsWith(envPath);
             } catch {
               return false;
@@ -186,9 +219,15 @@ function wireEvents() {
       }
     }
   } catch {}
+
   populateProjects(projects, autoSelect);
   if (autoSelect !== selectedProjectId) {
     await chrome.storage.sync.set({ selectedProjectId: autoSelect });
   }
+
+  // Render buttons for the selected project
+  const selectedProject = projects.find((p) => p.id === autoSelect);
+  renderEnvironmentButtons(selectedProject);
+
   wireEvents();
 })();

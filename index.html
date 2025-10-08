@@ -4,34 +4,56 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Project ENV Manager</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
+    />
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <main>
-      <header>
-        <img src="icon.png" alt="icon" width="24" height="24" />
-        <h1>Project ENV Manager</h1>
+    <main class="m-3" style="width: 320px">
+      <header class="is-flex is-align-items-center mb-3">
+        <figure class="image is-24x24 mr-2">
+          <img src="icon.png" alt="icon" />
+        </figure>
+        <h1 class="title is-6 mb-0">Project ENV Manager</h1>
       </header>
 
-      <section>
-        <label for="projectSelect">Select Project</label>
-        <select id="projectSelect"></select>
-      </section>
-
-      <section>
-        <div class="row">
-          <button id="toDev" title="Open in Dev">Local</button>
-          <button id="toStaging" title="Open in Staging">Staging</button>
-          <button id="toProd" title="Open in Prod">Production</button>
-          <button id="toLogin" title="Go to Login">Login</button>
+      <section class="mb-4">
+        <div class="field">
+          <label class="label is-small" for="projectSelect"
+            >Select Project</label
+          >
+          <div class="control">
+            <div class="select is-small is-fullwidth">
+              <select id="projectSelect"></select>
+            </div>
+          </div>
         </div>
       </section>
 
-      <footer>
-        <span class="hint">
-          Manage projects in <a id="openOptions" href="#">Options</a>.
+      <section class="mb-4">
+        <div class="buttons mb-2 environment-buttons is-justify-content-evenly">
+          <!-- Environment buttons will be dynamically generated -->
+        </div>
+        <div class="mt-2">
+          <button
+            id="toLogin"
+            title="Go to Login"
+            class="button is-link is-small"
+          >
+            Login
+          </button>
+        </div>
+      </section>
+
+      <footer
+        class="is-flex is-justify-content-space-between is-align-items-baseline"
+      >
+        <span class="is-size-7 has-text-grey">
+          <a id="openOptions" href="#" class="has-text-link">Manage projects</a>
         </span>
-        <small>v0.1</small>
+        <small class="has-text-grey">v0.2</small>
       </footer>
     </main>
     <script src="popup.js"></script>

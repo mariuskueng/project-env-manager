@@ -4,11 +4,11 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 const defaultProjects = [
   {
     id: "zuerich",
-    environments: {
-      dev: "https://zuerich.ddev.site/",
-      staging: "https://staging.zuerich.com/de",
-      prod: "https://www.zuerich.com/de",
-    },
+    environments: [
+      { name: "dev", url: "https://zuerich.ddev.site/" },
+      { name: "staging", url: "https://staging.zuerich.com/de" },
+      { name: "prod", url: "https://www.zuerich.com/de" },
+    ],
   },
 ];
 
@@ -26,17 +26,42 @@ function renderProjects(projects) {
   }
 }
 
-function projectNode(
-  p = { id: "", environments: { dev: "", staging: "", prod: "" } }
-) {
+function projectNode(p = { id: "", environments: [] }) {
   const tpl = $("#projectTmpl");
   const node = tpl.content.cloneNode(true);
   const root = node.querySelector(".project");
   $(".p-id", root).value = p.id || "";
-  $(".p-dev", root).value = p.environments?.dev || "";
-  $(".p-staging", root).value = p.environments?.staging || "";
-  $(".p-prod", root).value = p.environments?.prod || "";
+
+  // Handle environments
+  const envContainer = $(".environments-container", root);
+  if (p.environments && p.environments.length > 0) {
+    p.environments.forEach((env) => {
+      envContainer.appendChild(environmentNode(env));
+    });
+  } else {
+    // Add default environments if none exist
+    envContainer.appendChild(environmentNode({ name: "dev", url: "" }));
+    envContainer.appendChild(environmentNode({ name: "staging", url: "" }));
+    envContainer.appendChild(environmentNode({ name: "prod", url: "" }));
+  }
+
+  // Wire up add environment button
+  $(".add-env", root).addEventListener("click", () => {
+    envContainer.appendChild(environmentNode());
+  });
+
   $(".remove", root).addEventListener("click", () => root.remove());
+  return node;
+}
+
+function environmentNode(env = { name: "", url: "" }) {
+  const tpl = $("#environmentTmpl");
+  const node = tpl.content.cloneNode(true);
+  const root = node.querySelector(".environment-entry");
+  $(".env-name", root).value = env.name || "";
+  $(".env-url", root).value = env.url || "";
+
+  $(".remove-env", root).addEventListener("click", () => root.remove());
   return node;
 }
 
@@ -44,11 +69,18 @@ function readProjects() {
   const projects = [];
   $$("#projectsContainer .project").forEach((root) => {
     const id = $(".p-id", root).value.trim();
-    const dev = $(".p-dev", root).value.trim();
-    const staging = $(".p-staging", root).value.trim();
-    const prod = $(".p-prod", root).value.trim();
     if (!id) return; // skip incomplete rows
-    projects.push({ id, environments: { dev, staging, prod } });
+
+    const environments = [];
+    $$(".environment-entry", root).forEach((envRoot) => {
+      const name = $(".env-name", envRoot).value.trim();
+      const url = $(".env-url", envRoot).value.trim();
+      if (name && url) {
+        environments.push({ name, url });
+      }
+    });
+
+    projects.push({ id, environments });
   });
   return projects;
 }

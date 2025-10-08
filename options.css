@@ -1,53 +1,34 @@
+/* Minimal custom styles for options page - using Bulma for most styling */
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font: 14px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica,
-    Arial, sans-serif;
   margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica,
+    Arial, sans-serif;
+  background-color: #fafafa;
+  min-height: 100vh;
 }
-main {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 16px;
+
+/* Custom spacing adjustments for the projects container */
+.projects-container .box {
+  margin-bottom: 1rem;
 }
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+
+/* Ensure environment entries are properly spaced */
+.environment-entry {
+  margin-bottom: 0.5rem !important;
 }
-button {
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  background: #f6f7f9;
-  border-radius: 6px;
-  cursor: pointer;
+
+/* Custom button spacing in environment entries */
+.environment-entry .button {
+  margin-left: 0.5rem;
 }
-button:hover {
-  background: #eef1f5;
-}
-.row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  align-items: end;
-}
-.project {
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 12px;
-  margin: 12px 0;
-}
-label {
-  font-weight: 600;
-}
-input {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin-top: 4px;
-}
-hr {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 12px 0 0;
+
+/* Make environment buttons consistent */
+.environments-section .button {
+  margin-bottom: 0.5rem;
 }

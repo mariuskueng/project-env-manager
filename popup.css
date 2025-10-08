@@ -1,79 +1,43 @@
+/* Minimal custom styles for popup - using Bulma for most styling */
+
 * {
   box-sizing: border-box;
 }
+
 body {
-  font: 13px/1.4 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica;
-  grid-template-columns: repeat(4, 1fr);
   margin: 0;
   padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica,
+    Arial, sans-serif;
 }
-main {
-  width: 320px;
-  padding: 12px;
+
+/* Custom width for the popup */
+main.box {
+  width: 320px !important;
 }
-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+
+/* Ensure the icon maintains aspect ratio */
+.image.is-24x24 img {
+  width: 24px;
+  height: 24px;
 }
-h1 {
-  font-size: 16px;
-  margin: 0;
+
+/* Small adjustments for better spacing in the compact popup */
+.buttons .button {
+  margin-bottom: 0.25rem !important;
 }
-section {
-  margin: 16px 0;
+
+/* Make environment buttons wrap nicely */
+.environment-buttons {
+  flex-wrap: wrap !important;
 }
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-select,
-input {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-.row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-button {
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  background: #f6f7f9;
-  border-radius: 6px;
-  cursor: pointer;
-}
-button:hover {
-  background: #eef1f5;
-}
-.hint {
-  color: #777;
-  font-size: 12px;
-  font-weight: normal;
-  margin-top: 4px;
-}
-footer {
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  color: #777;
-}
-.previews {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #333;
-}
-.previews a {
-  word-break: break-all;
-  color: #0062cc;
+
+/* Custom link styling to match the extension theme */
+a.has-text-link {
+  color: #3273dc !important;
   text-decoration: none;
 }
-.previews a:hover {
+
+a.has-text-link:hover {
   text-decoration: underline;
 }
