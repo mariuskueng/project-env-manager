@@ -1,16 +1,7 @@
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-const defaultProjects = [
-  {
-    id: "zuerich",
-    environments: [
-      { name: "dev", url: "https://zuerich.ddev.site/" },
-      { name: "staging", url: "https://staging.zuerich.com/de" },
-      { name: "prod", url: "https://www.zuerich.com/de" },
-    ],
-  },
-];
+const defaultProjects = [];
 
 async function load() {
   const res = await chrome.storage.sync.get(["projects", "selectedProjectId"]);
