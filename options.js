@@ -128,7 +128,7 @@ function importConfig(event) {
       // Validate the configuration structure
       if (!config.projects || !Array.isArray(config.projects)) {
         throw new Error(
-          "Invalid configuration format: missing or invalid projects array"
+          "Invalid configuration format: missing or invalid projects array",
         );
       }
 
@@ -139,7 +139,7 @@ function importConfig(event) {
         }
         if (!project.environments || !Array.isArray(project.environments)) {
           throw new Error(
-            `Invalid project "${project.id}": missing or invalid environments array`
+            `Invalid project "${project.id}": missing or invalid environments array`,
           );
         }
         for (const env of project.environments) {
@@ -150,7 +150,7 @@ function importConfig(event) {
             typeof env.url !== "string"
           ) {
             throw new Error(
-              `Invalid environment in project "${project.id}": missing name or url`
+              `Invalid environment in project "${project.id}": missing name or url`,
             );
           }
         }
@@ -160,7 +160,7 @@ function importConfig(event) {
       renderProjects(config.projects);
       showNotification(
         `Successfully imported ${config.projects.length} project(s)!`,
-        "success"
+        "success",
       );
     } catch (error) {
       showNotification(`Import failed: ${error.message}`, "danger");
