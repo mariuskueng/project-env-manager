@@ -6,6 +6,7 @@
     "prettier:fix": "prettier --write ."
   },
   "dependencies": {
+    "chrome-types": "^0.1.383",
     "prettier": "^3.4.2"
   }
 }

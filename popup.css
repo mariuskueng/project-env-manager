@@ -47,3 +47,7 @@ a.has-text-link {
 a.has-text-link:hover {
   text-decoration: underline;
 }
+
+.underline {
+  text-decoration: underline;
+}

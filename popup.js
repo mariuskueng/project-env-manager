@@ -5,11 +5,11 @@ const $ = (sel) => document.querySelector(sel);
 const defaultConfig = {
   projects: [
     {
-      id: "zuerich",
+      id: "Example Site",
       environments: [
-        { name: "dev", url: "https://zuerich.ddev.site/" },
-        { name: "staging", url: "https://staging.zuerich.com/de" },
-        { name: "prod", url: "https://www.zuerich.com/de" },
+        { name: "dev", url: "https://dev.example.com/" },
+        { name: "staging", url: "https://staging.example.com/" },
+        { name: "prod", url: "https://www.example.com/" },
       ],
     },
   ],
@@ -111,7 +111,7 @@ async function openEnv(envName) {
   await chrome.tabs.create({ url });
 }
 
-function renderEnvironmentButtons(project) {
+function renderEnvironmentButtons(project, currentUrl) {
   const container = $(".environment-buttons");
   container.innerHTML = "";
 
@@ -124,6 +124,11 @@ function renderEnvironmentButtons(project) {
   project.environments.forEach((env) => {
     const button = document.createElement("button");
     button.className = "button is-light is-small";
+
+    if (currentUrl.startsWith(env.url)) {
+      button.className += " underline";
+    }
+
     button.textContent = env.name.charAt(0).toUpperCase() + env.name.slice(1);
     button.title = `Open in ${env.name}`;
     button.addEventListener("click", () => openEnv(env.name));
@@ -178,47 +183,47 @@ function wireEvents() {
 (async function init() {
   const { projects, selectedProjectId } = await getConfig();
   let autoSelect = selectedProjectId;
-  try {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
+
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+
+  if (tab?.url) {
+    const u = new URL(tab.url);
+    const host = u.host;
+    // Heuristic: pick project whose any env host appears in current host
+    const match = projects.find((p) => {
+      const envs = p.environments || [];
+      return envs.some((env) => {
+        try {
+          return (
+            new URL(env.url).host &&
+            host.includes(new URL(env.url).host.replace(/^www\./, ""))
+          );
+        } catch {
+          return false;
+        }
+      });
     });
-    if (tab?.url) {
-      const u = new URL(tab.url);
-      const host = u.host;
-      // Heuristic: pick project whose any env host appears in current host
-      const match = projects.find((p) => {
+    if (match) {
+      autoSelect = match.id;
+    } else {
+      // Fallback: try matching by pathname prefix
+      const pathMatch = projects.find((p) => {
         const envs = p.environments || [];
         return envs.some((env) => {
           try {
-            return (
-              new URL(env.url).host &&
-              host.includes(new URL(env.url).host.replace(/^www\./, ""))
-            );
+            const envPath = new URL(env.url).pathname;
+            return u.pathname.startsWith(envPath);
           } catch {
             return false;
           }
         });
       });
-      if (match) {
-        autoSelect = match.id;
-      } else {
-        // Fallback: try matching by pathname prefix
-        const pathMatch = projects.find((p) => {
-          const envs = p.environments || [];
-          return envs.some((env) => {
-            try {
-              const envPath = new URL(env.url).pathname;
-              return u.pathname.startsWith(envPath);
-            } catch {
-              return false;
-            }
-          });
-        });
-        if (pathMatch) autoSelect = pathMatch.id;
-      }
+      if (pathMatch) autoSelect = pathMatch.id;
     }
-  } catch {}
+  }
 
   populateProjects(projects, autoSelect);
   if (autoSelect !== selectedProjectId) {
@@ -227,7 +232,7 @@ function wireEvents() {
 
   // Render buttons for the selected project
   const selectedProject = projects.find((p) => p.id === autoSelect);
-  renderEnvironmentButtons(selectedProject);
+  renderEnvironmentButtons(selectedProject, tab?.url);
 
   wireEvents();
 })();
