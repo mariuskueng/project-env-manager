@@ -199,6 +199,10 @@ function showNotification(message, type = "info") {
   }, 5000);
 }
 
+function importUpsun() {
+  console.log("importUpsun")
+}
+
 function wire() {
   $("#addProject").addEventListener("click", () => {
     $("#projectsContainer").appendChild(projectNode());
@@ -206,6 +210,7 @@ function wire() {
   $("#save").addEventListener("click", save);
   $("#exportConfig").addEventListener("click", exportConfig);
   $("#importFile").addEventListener("change", importConfig);
+  $('#importUpsun').addEventListener("click", importUpsun);
 }
 
 (async function init() {
