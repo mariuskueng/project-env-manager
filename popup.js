@@ -155,7 +155,11 @@ function wireEvents() {
       const destination = encodeURIComponent(u.pathname + u.search + u.hash);
       
       // Use configured login URL or default to /user/login
-      const loginPath = project?.loginUrl || "/user/login";
+      let loginPath = project?.loginUrl || "/user/login";
+      // Ensure loginPath starts with '/'
+      if (loginPath && !loginPath.startsWith("/")) {
+        loginPath = "/" + loginPath;
+      }
       const targetUrl = onProject
         ? `${u.origin}${loginPath}?destination=${destination}`
         : `${u.origin}${loginPath}`;

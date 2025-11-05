@@ -63,7 +63,11 @@ function readProjects() {
     const id = $(".p-id", root).value.trim();
     if (!id) return; // skip incomplete rows
 
-    const loginUrl = $(".p-login-url", root).value.trim();
+    let loginUrl = $(".p-login-url", root).value.trim();
+    // Ensure loginUrl starts with '/' if provided
+    if (loginUrl && !loginUrl.startsWith("/")) {
+      loginUrl = "/" + loginUrl;
+    }
 
     const environments = [];
     $$(".environment-entry", root).forEach((envRoot) => {
