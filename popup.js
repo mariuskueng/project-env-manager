@@ -153,9 +153,12 @@ function wireEvents() {
       const u = new URL(tab.url);
       const onProject = project ? isUrlOnProject(tab.url, project) : false;
       const destination = encodeURIComponent(u.pathname + u.search + u.hash);
+      
+      // Use configured login URL or default to /user/login
+      const loginPath = project?.loginUrl || "/user/login";
       const targetUrl = onProject
-        ? `${u.origin}/user/login?destination=${destination}`
-        : `${u.origin}/user/login`;
+        ? `${u.origin}${loginPath}?destination=${destination}`
+        : `${u.origin}${loginPath}`;
       await chrome.tabs.update(tab.id, { url: targetUrl });
     } catch (e) {
       // ignore
