@@ -17,12 +17,13 @@ function renderProjects(projects) {
   }
 }
 
-function projectNode(p = { id: "", loginUrl: "", environments: [] }) {
+function projectNode(p = { id: "", loginUrl: "", destinationParam: "", environments: [] }) {
   const tpl = $("#projectTmpl");
   const node = tpl.content.cloneNode(true);
   const root = node.querySelector(".project");
   $(".p-id", root).value = p.id || "";
   $(".p-login-url", root).value = p.loginUrl || "";
+  $(".p-destination-param", root).value = p.destinationParam || "";
 
   // Handle environments
   const envContainer = $(".environments-container", root);
@@ -69,6 +70,8 @@ function readProjects() {
       loginUrl = "/" + loginUrl;
     }
 
+    const destinationParam = $(".p-destination-param", root).value.trim();
+
     const environments = [];
     $$(".environment-entry", root).forEach((envRoot) => {
       const name = $(".env-name", envRoot).value.trim();
@@ -78,7 +81,7 @@ function readProjects() {
       }
     });
 
-    projects.push({ id, loginUrl, environments });
+    projects.push({ id, loginUrl, destinationParam, environments });
   });
   return projects;
 }

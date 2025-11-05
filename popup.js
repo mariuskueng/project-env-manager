@@ -160,8 +160,12 @@ function wireEvents() {
       if (loginPath && !loginPath.startsWith("/")) {
         loginPath = "/" + loginPath;
       }
+      
+      // Use configured destination parameter name or default to 'destination'
+      const destinationParam = project?.destinationParam || "destination";
+      
       const targetUrl = onProject
-        ? `${u.origin}${loginPath}?destination=${destination}`
+        ? `${u.origin}${loginPath}?${destinationParam}=${destination}`
         : `${u.origin}${loginPath}`;
       await chrome.tabs.update(tab.id, { url: targetUrl });
     } catch (e) {
