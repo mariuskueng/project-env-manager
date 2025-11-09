@@ -199,8 +199,152 @@ function showNotification(message, type = "info") {
   }, 5000);
 }
 
+/*
+ * Create form to request access token from Google's OAuth 2.0 server.
+ */
+function oauthSignIn() {
+  // Google's OAuth 2.0 endpoint for requesting an access token
+  var oauth2Endpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+  // Create <form> element to submit parameters to OAuth 2.0 endpoint.
+  var form = document.createElement('form');
+  form.setAttribute('method', 'GET'); // Send as a GET request.
+  form.setAttribute('action', oauth2Endpoint);
+
+  // Parameters to pass to OAuth 2.0 endpoint.
+  var params = {'client_id': 'YOUR_CLIENT_ID',
+                'redirect_uri': 'YOUR_REDIRECT_URI',
+                'response_type': 'token',
+                'scope': 'https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/calendar.readonly',
+                'include_granted_scopes': 'true',
+                'state': 'pass-through value'};
+
+  // Add form parameters as hidden input values.
+  for (var p in params) {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'hidden');
+    input.setAttribute('name', p);
+    input.setAttribute('value', params[p]);
+    form.appendChild(input);
+  }
+
+  // Add form to page and submit it to open the OAuth 2.0 endpoint.
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function oauthSignInUpsun() {
+  var oauth2Endpoint = 'https://auth.upsun.com';
+
+  // Create <form> element to submit parameters to OAuth 2.0 endpoint.
+  var form = document.createElement('form');
+  form.setAttribute('method', 'GET'); // Send as a GET request.
+  form.setAttribute('action', oauth2Endpoint);
+
+  // Parameters to pass to OAuth 2.0 endpoint.
+  var params = {'client_id': 'upsun-cli',
+                'redirect_uri': 'google.com',
+                'response_type': 'token',
+                'scope': 'https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/calendar.readonly',
+                'include_granted_scopes': 'true',
+                'state': 'pass-through value'};
+
+  // Add form parameters as hidden input values.
+  for (var p in params) {
+    var input = document.createElement('input');
+    input.setAttribute('type', 'hidden');
+    input.setAttribute('name', p);
+    input.setAttribute('value', params[p]);
+    form.appendChild(input);
+  }
+
+  // Add form to page and submit it to open the OAuth 2.0 endpoint.
+  document.body.appendChild(form);
+  form.submit();
+}
+
+async function hackyUpsunLogin() {
+  let token = "aaa"
+
+  chrome.webRequest.onResponseStarted.addListener((r) => {
+    console.log("load organizarions")
+    console.log(r.url)
+    chrome.scripting.executeScript({
+      target: {
+        tabId: r.tabId
+      },
+      func: async () => {
+        const r = await fetch(r.url)
+        const j = await r.json()
+        console.log("the result in json")
+        console.log(j)
+        return j
+      }
+    }).then(async injectionResults => {
+      for (const {frameId, result} of injectionResults) {
+        console.log(`Frame ${frameId} result:`, await result);
+      }
+    })
+  }, {
+    urls: ['https://api.upsun.com/*/organizations*']
+  }, [])
+
+  chrome.windows.create({
+    type: "popup",
+    url: 'https://auth.upsun.com'
+  }).then((w) => {
+
+    console.log("window is open")
+    console.log(w.tabs.at(0).url)
+
+    chrome.scripting.executeScript({
+      target: {
+        tabId: w.tabs.at(0).id
+      },
+      func: () => {
+        console.log("66")
+        return "bb"
+      }
+    }).then(injectionResults => {
+      for (const {frameId, result} of injectionResults) {
+        console.log(`Frame ${frameId} result:`, result);
+      }
+    });
+  })
+
+
+  // var theWindow = window.open( 'https://milanbombsch.ch'/*'https://console.upsun.com/orisch-enterprise'*/ /*'https://auth.upsun.com'*/, "", "width=600,height=700")
+  
+  // console.log(theWindow.document.)
+
+  // chrome.scripting.executeScript({
+  //   target:{
+
+  //   }
+  // })
+
+  // const theDoc = theWindow.document
+  // window.onload = () => {console.log("something 5")}
+  // console.log("popup inner html")
+  // console.log(theDoc.body.innerHTML)
+
+  // // const theScript = document.createElement('script')
+
+  // // function injectThis() {
+  // //     // The code you want to inject goes here
+  // //     console.log("yes, inject worked 1")
+  // // }
+  // // theScript.innerHTML = 'window.onload = ' + injectThis.toString() + ';';
+
+  // theWindow.console.log("hey here 3")
+
+  // window.onload = () => {console.log("something 5")}
+  // theWindow.onload = () => {console.log("something 4")}
+}
+
 function importUpsun() {
   console.log("importUpsun")
+  hackyUpsunLogin()
 }
 
 function wire() {

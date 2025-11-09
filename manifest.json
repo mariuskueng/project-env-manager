@@ -3,7 +3,7 @@
   "description": "Generate Dev/Staging/Prod links for multiple projects",
   "version": "1.0",
   "manifest_version": 3,
-  "permissions": ["storage", "tabs", "activeTab"],
+  "permissions": ["storage", "tabs", "activeTab", "scripting", "webRequest"],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
@@ -11,5 +11,17 @@
   "action": {
     "default_popup": "index.html",
     "default_icon": "icon.png"
-  }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
+
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [ "myscript.js" ],
+      "matches": [ "https://*/*" ]
+    }
+  ],
+  "host_permissions": ["<all_urls>"]
 }
