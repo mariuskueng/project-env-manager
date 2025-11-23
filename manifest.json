@@ -1,6 +1,6 @@
 {
   "name": "Project ENV Manager",
-  "description": "Generate Dev/Staging/Prod links for multiple projects",
+  "description": "Quick access for Dev/Staging/Prod links for multiple projects",
   "version": "1.0",
   "manifest_version": 3,
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
@@ -11,11 +11,6 @@
   "action": {
     "default_popup": "index.html",
     "default_icon": "icon.png"
-  },
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self';",
-    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
-
   },
   "host_permissions": ["https://*.upsun.com/*"]
 }

@@ -200,126 +200,135 @@ function showNotification(message, type = "info") {
 }
 
 let upsunToken;
-let popupTabId;
-
 let bearerToken;
 const upsunApiFetch = async (path) => {
-  const data = await fetch(`https://api.upsun.com${path}`,
-    {
-      headers: {
-        Authorization: `Bearer ${bearerToken}`
-      }
-    })
+  const data = await fetch(`https://api.upsun.com${path}`, {
+    headers: {
+      Authorization: `Bearer ${bearerToken}`,
+    },
+  });
 
-  return await data.json()
-}
+  return await data.json();
+};
 
 const loadDatafromUpsunApi = async (accessToken) => {
   if (accessToken == undefined) {
-    return
+    return;
   }
 
   if (bearerToken) {
-    return
+    return;
   }
 
-  bearerToken = accessToken
+  bearerToken = accessToken;
 
-  const user = await upsunApiFetch('/users/me')
+  const user = await upsunApiFetch("/users/me");
 
-  const organizations = await upsunApiFetch(`/users/${user.id}/organizations`)
+  const organizations = await upsunApiFetch(`/users/${user.id}/organizations`);
 
-  const projectsFromUpsun = []
+  const projectsFromUpsun = [];
   for (const organization of organizations.items) {
-    const projects = await upsunApiFetch(`/organizations/${organization.id}/projects`)
+    const projects = await upsunApiFetch(
+      `/organizations/${organization.id}/projects`,
+    );
 
     for (const project of projects.items) {
-      const environmentsFromUpsun = await upsunApiFetch(`/projects/${project.id}/environments`)
+      const environmentsFromUpsun = await upsunApiFetch(
+        `/projects/${project.id}/environments`,
+      );
 
       const environments = environmentsFromUpsun.map((e) => {
         return {
           name: e.id,
-          url: `https://${e.default_domain ?? e.edge_hostname}` // default domain is only present if a custom url is configured in upsun.
-        }
-      })
+          url: `https://${e.default_domain ?? e.edge_hostname}`, // default domain is only present if a custom url is configured in upsun.
+        };
+      });
 
-      projectsFromUpsun.push({id: project.title, environments })
+      projectsFromUpsun.push({ id: project.title, environments });
     }
   }
 
-  const currentProjects = readProjects()
+  const currentProjects = readProjects();
   projectsFromUpsun.forEach((projectFromUpsun) => {
-    const currentProject = currentProjects.find((currentProject) => currentProject.id === projectFromUpsun.id)
+    const currentProject = currentProjects.find(
+      (currentProject) => currentProject.id === projectFromUpsun.id,
+    );
 
     if (currentProject) {
-      currentProject.environments = projectFromUpsun.environments
+      currentProject.environments = projectFromUpsun.environments;
     } else {
-      currentProjects.push(projectFromUpsun)
+      currentProjects.push(projectFromUpsun);
     }
-  })
+  });
 
-  renderProjects(currentProjects)
-  save()
-}
+  renderProjects(currentProjects);
+  save();
+};
 
 const showWholePageSpinner = () => {
-  $('body').classList.add('scrollBlock')
-  $('#wholePageSpinner').style.removeProperty('display')
-}
+  $("body").classList.add("scrollBlock");
+  $("#wholePageSpinner").style.removeProperty("display");
+};
 
 const hideWholePageSpinner = () => {
-  $('body').classList.remove('scrollBlock')
-  $('#wholePageSpinner').style.display = 'none'
-}
+  $("body").classList.remove("scrollBlock");
+  $("#wholePageSpinner").style.display = "none";
+};
+
+let upsunPopupTabId;
+const upsunTabListener = (tabId, changeInfo, tab) => {
+  if (tabId === upsunPopupTabId) {
+    chrome.scripting
+      .executeScript({
+        target: { tabId: upsunPopupTabId },
+        func: () => {
+          return new Promise((resolve) => {
+            const origFetch = fetch;
+            fetch = (input, init) => {
+              if (input == "https://auth.upsun.com/oauth2/token") {
+                origFetch(input, init).then(async (data) => {
+                  const json = await data.json();
+
+                  resolve(json.access_token);
+                });
+
+                return Promise.reject();
+              }
+
+              return origFetch(input, init);
+            };
+          });
+        },
+        injectImmediately: true,
+        world: "MAIN",
+      })
+      .then(async (injectionResults) => {
+        for (const { frameId, result } of injectionResults) {
+          if (typeof result === "string") {
+            chrome.tabs.remove(upsunPopupTabId);
+            chrome.tabs.onUpdated.removeListener(upsunTabListener);
+
+            await loadDatafromUpsunApi(result);
+            hideWholePageSpinner();
+          }
+        }
+      });
+  }
+};
 
 async function importFromUpsun() {
-  showWholePageSpinner()
+  showWholePageSpinner();
 
-  chrome.windows.create({
-    type: "normal",
-    url: 'https://auth.upsun.com',
-    
-  }).then((w) => {
-    popupTabId = w.tabs.at(0).id
+  chrome.windows
+    .create({
+      type: "normal",
+      url: "https://auth.upsun.com",
+    })
+    .then((w) => {
+      upsunPopupTabId = w.tabs.at(0).id;
 
-    chrome.tabs.onUpdated.addListener(
-      (tabId, changeInfo, tab) => {
-        if (tabId === popupTabId) {
-          chrome.scripting.executeScript({
-            target : {tabId : popupTabId},
-            func : () => {
-              return new Promise((resolve) => {
-                const origFetch = fetch
-                fetch = (input, init) => {
-                  if (input == 'https://auth.upsun.com/oauth2/token') {
-                    origFetch(input, init).then(async (data) => {
-                      const json = await data.json()
-
-                      resolve(json.access_token)
-                    })
-
-                    return Promise.reject()
-                  }
-
-                  return origFetch(input, init)
-                }
-              })
-            },
-            injectImmediately: true,
-            world: "MAIN"
-          }).then(async injectionResults => {
-            for (const {frameId, result} of injectionResults) {
-              if (typeof result === 'string') {
-                chrome.tabs.remove(popupTabId)
-                await loadDatafromUpsunApi(result)
-                hideWholePageSpinner()
-              }
-            }
-          })
-        }
-      }
-    );
-  })
+      chrome.tabs.onUpdated.addListener(upsunTabListener);
+    });
 }
 
 function wire() {
@@ -329,7 +338,7 @@ function wire() {
   $("#save").addEventListener("click", save);
   $("#exportConfig").addEventListener("click", exportConfig);
   $("#importFile").addEventListener("change", importConfig);
-  $('#importFromUpsun').addEventListener("click", importFromUpsun);
+  $("#importFromUpsun").addEventListener("click", importFromUpsun);
 }
 
 (async function init() {
