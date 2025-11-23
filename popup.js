@@ -125,7 +125,7 @@ function renderEnvironmentButtons(project, currentUrl) {
     const button = document.createElement("button");
     button.className = "button is-light is-small";
 
-    if (currentUrl.startsWith(env.url)) {
+    if (currentUrl?.startsWith(env?.url)) {
       button.className += " underline";
     }
 

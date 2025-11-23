@@ -225,7 +225,6 @@ const loadDatafromUpsunApi = async (accessToken) => {
 
   bearerToken = accessToken
 
-  console.log("fetching data from upsun")
   const user = await upsunApiFetch('/users/me')
 
   const organizations = await upsunApiFetch(`/users/${user.id}/organizations`)
@@ -240,7 +239,7 @@ const loadDatafromUpsunApi = async (accessToken) => {
       const environments = environmentsFromUpsun.map((e) => {
         return {
           name: e.id,
-          url: `https://${e.edge_hostname}`
+          url: `https://${e.default_domain ?? e.edge_hostname}` // default domain is only present if a custom url is configured in upsun.
         }
       })
 
@@ -259,17 +258,23 @@ const loadDatafromUpsunApi = async (accessToken) => {
     }
   })
 
-  console.log("currentProjects")
-  console.log(currentProjects)
-
-  console.log("projectsFromUpsun")
-  console.log(projectsFromUpsun)
-
   renderProjects(currentProjects)
   save()
 }
 
-async function hackyUpsunLogin() {
+const showWholePageSpinner = () => {
+  $('body').classList.add('scrollBlock')
+  $('#wholePageSpinner').style.removeProperty('display')
+}
+
+const hideWholePageSpinner = () => {
+  $('body').classList.remove('scrollBlock')
+  $('#wholePageSpinner').style.display = 'none'
+}
+
+async function importFromUpsun() {
+  showWholePageSpinner()
+
   chrome.windows.create({
     type: "normal",
     url: 'https://auth.upsun.com',
@@ -279,51 +284,42 @@ async function hackyUpsunLogin() {
 
     chrome.tabs.onUpdated.addListener(
       (tabId, changeInfo, tab) => {
-
         if (tabId === popupTabId) {
+          chrome.scripting.executeScript({
+            target : {tabId : popupTabId},
+            func : () => {
+              return new Promise((resolve) => {
+                const origFetch = fetch
+                fetch = (input, init) => {
+                  if (input == 'https://auth.upsun.com/oauth2/token') {
+                    origFetch(input, init).then(async (data) => {
+                      const json = await data.json()
 
-            chrome.scripting.executeScript({
-              target : {tabId : popupTabId},
-              func : () => {
-                return new Promise((resolve) => {
-                  const origFetch = fetch
-                  fetch = (input, init) => {
-                    if (input == 'https://auth.upsun.com/oauth2/token') {
-                      origFetch(input, init).then(async (data) => {
-                        const json = await data.json()
+                      resolve(json.access_token)
+                    })
 
-                        resolve(json.access_token)
-                      })
-
-                      return Promise.reject()
-                    }
-
-                    return origFetch(input, init)
+                    return Promise.reject()
                   }
-                })
-              },
-              injectImmediately: true,
-              world: "MAIN"
-            }).then(injectionResults => {
-              for (const {frameId, result} of injectionResults) {
-                if (typeof result === 'string') {
-                  console.log("result")
-                  console.log(result)
-                  loadDatafromUpsunApi(result)
-                  chrome.tabs.remove(popupTabId)
-                }
-              }
-            })
 
+                  return origFetch(input, init)
+                }
+              })
+            },
+            injectImmediately: true,
+            world: "MAIN"
+          }).then(async injectionResults => {
+            for (const {frameId, result} of injectionResults) {
+              if (typeof result === 'string') {
+                chrome.tabs.remove(popupTabId)
+                await loadDatafromUpsunApi(result)
+                hideWholePageSpinner()
+              }
+            }
+          })
         }
       }
     );
   })
-}
-
-function importUpsun() {
-  console.log("importUpsun")
-  hackyUpsunLogin()
 }
 
 function wire() {
@@ -333,7 +329,7 @@ function wire() {
   $("#save").addEventListener("click", save);
   $("#exportConfig").addEventListener("click", exportConfig);
   $("#importFile").addEventListener("change", importConfig);
-  $('#importUpsun').addEventListener("click", importUpsun);
+  $('#importFromUpsun').addEventListener("click", importFromUpsun);
 }
 
 (async function init() {
