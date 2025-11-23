@@ -17,10 +17,5 @@
     "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
 
   },
-  "web_accessible_resources": [
-    {
-      "matches": [ "https://*/*" ]
-    }
-  ],
   "host_permissions": ["<all_urls>"]
 }

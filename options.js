@@ -199,83 +199,126 @@ function showNotification(message, type = "info") {
   }, 5000);
 }
 
-async function hackyUpsunLogin() {
-  let token = "aaa"
+let upsunToken;
+let popupTabId;
 
-  chrome.webRequest.onResponseStarted.addListener((r) => {
-    console.log("load organizarions")
-    console.log(r.url)
-    chrome.scripting.executeScript({
-      target: {
-        tabId: r.tabId
-      },
-      func: async () => {
-        const r = await fetch(r.url)
-        const j = await r.json()
-        console.log("the result in json")
-        console.log(j)
-        return j
-      }
-    }).then(async injectionResults => {
-      for (const {frameId, result} of injectionResults) {
-        console.log(`Frame ${frameId} result:`, await result);
+let bearerToken;
+const upsunApiFetch = async (path) => {
+  const data = await fetch(`https://api.upsun.com${path}`,
+    {
+      headers: {
+        Authorization: `Bearer ${bearerToken}`
       }
     })
-  }, {
-    urls: ['https://api.upsun.com/*/organizations*']
-  }, [])
 
-  chrome.windows.create({
-    type: "popup",
-    url: 'https://auth.upsun.com'
-  }).then((w) => {
+  return await data.json()
+}
 
-    console.log("window is open")
-    console.log(w.tabs.at(0).url)
+const loadDatafromUpsunApi = async (accessToken) => {
+  if (accessToken == undefined) {
+    return
+  }
 
-    chrome.scripting.executeScript({
-      target: {
-        tabId: w.tabs.at(0).id
-      },
-      func: () => {
-        console.log("66")
-        return "bb"
-      }
-    }).then(injectionResults => {
-      for (const {frameId, result} of injectionResults) {
-        console.log(`Frame ${frameId} result:`, result);
-      }
-    });
+  if (bearerToken) {
+    return
+  }
+
+  bearerToken = accessToken
+
+  console.log("fetching data from upsun")
+  const user = await upsunApiFetch('/users/me')
+
+  const organizations = await upsunApiFetch(`/users/${user.id}/organizations`)
+
+  const projectsFromUpsun = []
+  for (const organization of organizations.items) {
+    const projects = await upsunApiFetch(`/organizations/${organization.id}/projects`)
+
+    for (const project of projects.items) {
+      const environmentsFromUpsun = await upsunApiFetch(`/projects/${project.id}/environments`)
+
+      const environments = environmentsFromUpsun.map((e) => {
+        return {
+          name: e.id,
+          url: `https://${e.edge_hostname}`
+        }
+      })
+
+      projectsFromUpsun.push({id: project.title, environments })
+    }
+  }
+
+  const currentProjects = readProjects()
+  projectsFromUpsun.forEach((projectFromUpsun) => {
+    const currentProject = currentProjects.find((currentProject) => currentProject.id === projectFromUpsun.id)
+
+    if (currentProject) {
+      currentProject.environments = projectFromUpsun.environments
+    } else {
+      currentProjects.push(projectFromUpsun)
+    }
   })
 
+  console.log("currentProjects")
+  console.log(currentProjects)
 
-  // var theWindow = window.open( 'https://milanbombsch.ch'/*'https://console.upsun.com/orisch-enterprise'*/ /*'https://auth.upsun.com'*/, "", "width=600,height=700")
-  
-  // console.log(theWindow.document.)
+  console.log("projectsFromUpsun")
+  console.log(projectsFromUpsun)
 
-  // chrome.scripting.executeScript({
-  //   target:{
+  renderProjects(currentProjects)
+  save()
+}
 
-  //   }
-  // })
+async function hackyUpsunLogin() {
+  chrome.windows.create({
+    type: "normal",
+    url: 'https://auth.upsun.com',
+    
+  }).then((w) => {
+    popupTabId = w.tabs.at(0).id
 
-  // const theDoc = theWindow.document
-  // window.onload = () => {console.log("something 5")}
-  // console.log("popup inner html")
-  // console.log(theDoc.body.innerHTML)
+    chrome.tabs.onUpdated.addListener(
+      (tabId, changeInfo, tab) => {
 
-  // // const theScript = document.createElement('script')
+        if (tabId === popupTabId) {
 
-  // // function injectThis() {
-  // //     // The code you want to inject goes here
-  // //     console.log("yes, inject worked 1")
-  // // }
-  // // theScript.innerHTML = 'window.onload = ' + injectThis.toString() + ';';
+            chrome.scripting.executeScript({
+              target : {tabId : popupTabId},
+              func : () => {
+                return new Promise((resolve) => {
+                  const origFetch = fetch
+                  fetch = (input, init) => {
+                    if (input == 'https://auth.upsun.com/oauth2/token') {
+                      origFetch(input, init).then(async (data) => {
+                        const json = await data.json()
 
-  // theWindow.console.log("hey here 3")
+                        resolve(json.access_token)
+                      })
 
-  // window.onload = () => {console.log("something 5")}
-  // theWindow.onload = () => {console.log("something 4")}
+                      return Promise.reject()
+                    }
+
+                    return origFetch(input, init)
+                  }
+                })
+              },
+              injectImmediately: true,
+              world: "MAIN"
+            }).then(injectionResults => {
+              for (const {frameId, result} of injectionResults) {
+                if (typeof result === 'string') {
+                  console.log("result")
+                  console.log(result)
+                  loadDatafromUpsunApi(result)
+                  chrome.tabs.remove(popupTabId)
+                }
+              }
+            })
+
+        }
+      }
+    );
+  })
 }
 
 function importUpsun() {
