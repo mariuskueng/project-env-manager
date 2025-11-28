@@ -5,7 +5,7 @@
   "manifest_version": 3,
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "options_ui": {
-    "page": "options.html",
+    "page": "options_ui/options_ui.html",
     "open_in_tab": true
   },
   "action": {
