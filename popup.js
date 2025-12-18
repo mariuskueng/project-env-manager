@@ -157,9 +157,20 @@ function wireEvents() {
       const u = new URL(tab.url)
       const onProject = project ? isUrlOnProject(tab.url, project) : false
       const destination = encodeURIComponent(u.pathname + u.search + u.hash)
+
+      // Use configured login URL or default to /user/login
+      let loginPath = project?.loginUrl || "/user/login"
+      // Ensure loginPath starts with '/'
+      if (loginPath && !loginPath.startsWith("/")) {
+        loginPath = "/" + loginPath
+      }
+
+      // Use configured destination parameter name or default to 'destination'
+      const destinationParam = project?.destinationParam || "destination"
+
       const targetUrl = onProject
-        ? `${u.origin}/user/login?destination=${destination}`
-        : `${u.origin}/user/login`
+        ? `${u.origin}${loginPath}?${destinationParam}=${destination}`
+        : `${u.origin}${loginPath}`
       await chrome.tabs.update(tab.id, { url: targetUrl })
     } catch (e) {
       // ignore
