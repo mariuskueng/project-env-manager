@@ -36,12 +36,18 @@
           `/projects/${project.id}/environments`,
         )
 
-        const environments = environmentsFromUpsun.map((e) => {
-          return {
-            name: e.id,
-            url: `https://${e.default_domain ?? e.edge_hostname}`, // default domain is only present if a custom url is configured in upsun.
-          }
-        })
+        const environments = environmentsFromUpsun
+          .filter((e) => e.status === "active")
+          .map((e) => {
+            return {
+              name: e.id,
+              url: `https://${e.default_domain ?? e.edge_hostname}`, // default domain is only present if a custom url is configured in upsun.
+            }
+          })
+
+        if (environments.length === 0) {
+          continue
+        }
 
         projectsFromUpsun.push({ id: project.title, environments })
       }
@@ -61,7 +67,7 @@
     })
 
     renderProjects(currentProjects)
-    saveProjects()
+    // saveProjects()
   }
 
   let upsunPopupTabId
