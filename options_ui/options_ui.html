@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -8,9 +8,13 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"
     />
-    <link rel="stylesheet" href="options.css" />
+    <link rel="stylesheet" href="options_ui.css" />
   </head>
   <body>
+    <div id="wholePageSpinner" style="display: none">
+      <div class="spinner"></div>
+    </div>
+
     <main class="container is-max-desktop p-3">
       <header
         class="is-flex is-justify-content-space-between is-align-items-center mb-3"
@@ -31,6 +35,7 @@
             <button id="exportConfig" class="button is-info is-small is-light">
               Export Config
             </button>
+
             <label class="button is-success is-small is-light" for="importFile">
               Import Config
             </label>
@@ -40,6 +45,13 @@
               accept=".json"
               style="display: none"
             />
+
+            <button
+              id="importFromUpsun"
+              class="button is-success is-small is-light"
+            >
+              Import from Upsun
+            </button>
           </div>
           <button id="save" class="button is-primary is-small is-light">
             Save
@@ -113,6 +125,7 @@
       </div>
     </template>
 
-    <script src="options.js"></script>
+    <script src="import_from_upsun.js"></script>
+    <script src="options_ui.js"></script>
   </body>
 </html>

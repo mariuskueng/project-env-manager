@@ -1,0 +1,82 @@
+/* Minimal custom styles for options page - using Bulma for most styling */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  background-color: #fafafa;
+  min-height: 100vh;
+}
+
+/* Custom spacing adjustments for the projects container */
+.projects-container .box {
+  margin-bottom: 1rem;
+}
+
+/* Ensure environment entries are properly spaced */
+.environment-entry {
+  margin-bottom: 0.5rem !important;
+}
+
+/* Custom button spacing in environment entries */
+.environment-entry .button {
+  margin-left: 0.5rem;
+}
+
+/* Make environment buttons consistent */
+.environments-section .button {
+  margin-bottom: 0.5rem;
+}
+
+/* Notification positioning */
+.notification {
+  margin-bottom: 1rem;
+}
+
+#wholePageSpinner .spinner {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+
+#wholePageSpinner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(128, 128, 128, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.scrollBlock {
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}

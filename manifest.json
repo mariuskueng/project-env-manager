@@ -1,15 +1,16 @@
 {
   "name": "Project ENV Manager",
-  "description": "Generate Dev/Staging/Prod links for multiple projects",
-  "version": "1.0",
+  "description": "Quick access for Dev/Staging/Production links for multiple projects (with Upsun support)",
+  "version": "0.3.0",
   "manifest_version": 3,
-  "permissions": ["storage", "tabs", "activeTab"],
+  "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "options_ui": {
-    "page": "options.html",
+    "page": "options_ui/options_ui.html",
     "open_in_tab": true
   },
   "action": {
     "default_popup": "index.html",
     "default_icon": "icon.png"
-  }
+  },
+  "host_permissions": ["https://*.upsun.com/*"]
 }
