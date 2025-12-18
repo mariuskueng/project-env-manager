@@ -1,7 +1,7 @@
 {
   "name": "Project ENV Manager",
   "description": "Quick access for Dev/Staging/Production links for multiple projects (with Upsun support)",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "manifest_version": 3,
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "options_ui": {
