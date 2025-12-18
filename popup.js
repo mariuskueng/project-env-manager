@@ -233,5 +233,9 @@ function wireEvents() {
   const selectedProject = projects.find((p) => p.id === autoSelect)
   renderEnvironmentButtons(selectedProject, tab?.url)
 
+  // Set version from manifest
+  const manifest = chrome.runtime.getManifest()
+  $("#version").textContent = `v${manifest.version}`
+
   wireEvents()
 })()
