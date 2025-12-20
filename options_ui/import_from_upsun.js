@@ -67,7 +67,7 @@
     })
 
     renderProjects(currentProjects)
-    // saveProjects()
+    saveProjects()
   }
 
   let upsunPopupTabId
