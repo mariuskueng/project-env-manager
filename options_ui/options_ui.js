@@ -75,7 +75,7 @@
     draggedElement = this
     this.classList.add("dragging")
     e.dataTransfer.effectAllowed = "move"
-    e.dataTransfer.setData("text/html", this.innerHTML)
+    e.dataTransfer.setData("text/plain", "")
   }
 
   function handleDragEnd(e) {
@@ -93,8 +93,7 @@
     }
     e.dataTransfer.dropEffect = "move"
 
-    const draggingItem = $(".dragging")
-    if (!draggingItem || draggingItem === this) return false
+    if (!draggedElement || draggedElement === this) return false
 
     // Get bounding rectangles
     const rect = this.getBoundingClientRect()
