@@ -1,4 +1,4 @@
-import type { Project, Environment } from '@/types'
+import type { Project, Environment } from "@/types"
 
 interface UpsunUser {
   id: string
@@ -41,7 +41,7 @@ async function upsunApiFetch<T>(path: string): Promise<T> {
 
 async function loadDataFromUpsunApi(
   accessToken: string,
-  currentProjects: Project[]
+  currentProjects: Project[],
 ): Promise<Project[] | null> {
   if (!accessToken) {
     return null
@@ -49,25 +49,25 @@ async function loadDataFromUpsunApi(
 
   bearerToken = accessToken
 
-  const user = await upsunApiFetch<UpsunUser>('/users/me')
+  const user = await upsunApiFetch<UpsunUser>("/users/me")
   const organizations = await upsunApiFetch<UpsunOrganizationsResponse>(
-    `/users/${user.id}/organizations`
+    `/users/${user.id}/organizations`,
   )
 
   const projectsFromUpsun: Project[] = []
 
   for (const organization of organizations.items) {
     const projects = await upsunApiFetch<UpsunProjectsResponse>(
-      `/organizations/${organization.id}/projects`
+      `/organizations/${organization.id}/projects`,
     )
 
     for (const project of projects.items) {
       const environmentsFromUpsun = await upsunApiFetch<UpsunEnvironment[]>(
-        `/projects/${project.id}/environments`
+        `/projects/${project.id}/environments`,
       )
 
       const environments: Environment[] = environmentsFromUpsun
-        .filter((e) => e.status === 'active')
+        .filter((e) => e.status === "active")
         .map((e) => ({
           name: e.id,
           url: `https://${e.default_domain ?? e.edge_hostname}`,
@@ -85,7 +85,9 @@ async function loadDataFromUpsunApi(
   const mergedProjects: Project[] = [...currentProjects]
 
   for (const projectFromUpsun of projectsFromUpsun) {
-    const existingIndex = mergedProjects.findIndex((p) => p.id === projectFromUpsun.id)
+    const existingIndex = mergedProjects.findIndex(
+      (p) => p.id === projectFromUpsun.id,
+    )
 
     if (existingIndex >= 0) {
       mergedProjects[existingIndex].environments = projectFromUpsun.environments
@@ -97,7 +99,9 @@ async function loadDataFromUpsunApi(
   return mergedProjects
 }
 
-export function importFromUpsun(currentProjects: Project[]): Promise<Project[] | null> {
+export function importFromUpsun(
+  currentProjects: Project[],
+): Promise<Project[] | null> {
   return new Promise((resolve, reject) => {
     let upsunPopupTabId: number | null = null
 
@@ -109,8 +113,11 @@ export function importFromUpsun(currentProjects: Project[]): Promise<Project[] |
             func: () => {
               return new Promise<string>((resolve) => {
                 const origFetch = window.fetch
-                window.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
-                  if (input === 'https://auth.upsun.com/oauth2/token') {
+                window.fetch = ((
+                  input: RequestInfo | URL,
+                  init?: RequestInit,
+                ) => {
+                  if (input === "https://auth.upsun.com/oauth2/token") {
                     origFetch(input, init).then(async (data) => {
                       const json = await data.json()
                       resolve(json.access_token)
@@ -122,16 +129,19 @@ export function importFromUpsun(currentProjects: Project[]): Promise<Project[] |
               })
             },
             injectImmediately: true,
-            world: 'MAIN',
+            world: "MAIN",
           })
           .then(async (injectionResults) => {
             for (const { result } of injectionResults) {
-              if (typeof result === 'string') {
+              if (typeof result === "string") {
                 chrome.tabs.remove(upsunPopupTabId!)
                 chrome.tabs.onUpdated.removeListener(upsunTabListener)
 
                 try {
-                  const mergedProjects = await loadDataFromUpsunApi(result, currentProjects)
+                  const mergedProjects = await loadDataFromUpsunApi(
+                    result,
+                    currentProjects,
+                  )
                   resolve(mergedProjects)
                 } catch (error) {
                   reject(error)
@@ -147,8 +157,8 @@ export function importFromUpsun(currentProjects: Project[]): Promise<Project[] |
 
     chrome.windows
       .create({
-        type: 'normal',
-        url: 'https://auth.upsun.com',
+        type: "normal",
+        url: "https://auth.upsun.com",
       })
       .then((w) => {
         upsunPopupTabId = w.tabs!.at(0)!.id!

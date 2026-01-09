@@ -17,7 +17,7 @@ const isDark = ref(false)
 const projectCards = ref<(InstanceType<typeof ProjectCard> | null)[]>([])
 
 // Provide dark mode state to child components
-provide('isDark', isDark)
+provide("isDark", isDark)
 
 function showNotification(
   message: string,
@@ -43,7 +43,7 @@ function ensureEnvironmentIds(projectList: Project[]): Project[] {
   return projectList.map((project) => ({
     ...project,
     environments: project.environments.map((env) =>
-      env.id ? env : { ...env, id: generateEnvId() }
+      env.id ? env : { ...env, id: generateEnvId() },
     ),
   }))
 }
@@ -78,7 +78,10 @@ async function saveProjects(): Promise<void> {
   try {
     const validProjects = projects.value.filter((p) => p.id?.trim())
     if (validProjects.length === 0) {
-      showNotification("No valid projects to save (projects need an ID)", "error")
+      showNotification(
+        "No valid projects to save (projects need an ID)",
+        "error",
+      )
       return
     }
     await saveProjectsToStorage(validProjects)
@@ -185,10 +188,12 @@ async function handleImportFromUpsun(): Promise<void> {
 
 onMounted(async () => {
   // Check system dark mode preference
-  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    isDark.value = e.matches
-  })
+  isDark.value = window.matchMedia("(prefers-color-scheme: dark)").matches
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (e) => {
+      isDark.value = e.matches
+    })
 
   const config = await getConfig()
   projects.value = ensureEnvironmentIds(config.projects)

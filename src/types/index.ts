@@ -27,7 +27,7 @@ export interface StorageConfig {
 }
 
 /** Notification types for toast messages */
-export type NotificationType = 'success' | 'error' | 'info'
+export type NotificationType = "success" | "error" | "info"
 
 /** Notification object for displaying toasts */
 export interface Notification {

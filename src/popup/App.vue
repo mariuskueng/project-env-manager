@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from "vue"
 import {
   SelectRoot,
   SelectTrigger,
@@ -10,21 +10,21 @@ import {
   SelectItem,
   SelectItemText,
   SelectItemIndicator,
-} from 'reka-ui'
-import type { Project } from '@/types'
+} from "reka-ui"
+import type { Project } from "@/types"
 import {
   getConfig,
   setSelectedProject,
   isUrlOnProject,
   buildUrl,
   findMatchingProject,
-} from '@/utils/storage'
-import iconUrl from '@/assets/icon.png'
+} from "@/utils/storage"
+import iconUrl from "@/assets/icon.png"
 
 const projects = ref<Project[]>([])
-const selectedProjectId = ref('')
-const currentTabUrl = ref('')
-const version = ref('')
+const selectedProjectId = ref("")
+const currentTabUrl = ref("")
+const version = ref("")
 const isDark = ref(false)
 
 const selectedProject = computed<Project | null>(() => {
@@ -51,7 +51,9 @@ async function openEnv(envName: string): Promise<void> {
   if (!tab?.url) return
 
   const onProject = isUrlOnProject(tab.url, project)
-  const url = onProject ? buildUrl(env.url, tab.url) : new URL(env.url).toString()
+  const url = onProject
+    ? buildUrl(env.url, tab.url)
+    : new URL(env.url).toString()
   await chrome.tabs.create({ url })
 }
 
@@ -65,12 +67,12 @@ async function goToLogin(): Promise<void> {
     const onProject = project ? isUrlOnProject(tab.url, project) : false
     const destination = encodeURIComponent(u.pathname + u.search + u.hash)
 
-    let loginPath = project?.loginUrl || '/user/login'
-    if (loginPath && !loginPath.startsWith('/')) {
-      loginPath = '/' + loginPath
+    let loginPath = project?.loginUrl || "/user/login"
+    if (loginPath && !loginPath.startsWith("/")) {
+      loginPath = "/" + loginPath
     }
 
-    const destinationParam = project?.destinationParam || 'destination'
+    const destinationParam = project?.destinationParam || "destination"
 
     const targetUrl = onProject
       ? `${u.origin}${loginPath}?${destinationParam}=${destination}`
@@ -93,18 +95,20 @@ async function onProjectChange(newValue: string): Promise<void> {
 
 onMounted(async () => {
   // Check system dark mode preference
-  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    isDark.value = e.matches
-  })
+  isDark.value = window.matchMedia("(prefers-color-scheme: dark)").matches
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", (e) => {
+      isDark.value = e.matches
+    })
 
   const config = await getConfig()
   projects.value = config.projects
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-  currentTabUrl.value = tab?.url || ''
+  currentTabUrl.value = tab?.url || ""
 
-  let autoSelect = config.selectedProjectId || ''
+  let autoSelect = config.selectedProjectId || ""
   const match = findMatchingProject(config.projects, tab?.url)
   if (match) {
     autoSelect = match.id
