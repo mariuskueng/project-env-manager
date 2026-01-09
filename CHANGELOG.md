@@ -1,12 +1,11 @@
 # Changelog
 
-
 ## [0.5.1] - 2026-01-09
 
 ### Changes
 
 - Refactor code style for consistency across the project (@Marius Küng)
-All notable changes to Project ENV Manager will be documented in this file.
+  All notable changes to Project ENV Manager will be documented in this file.
 
 ## [0.5.0] - 2026-01-09
 
