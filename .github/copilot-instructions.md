@@ -1,4 +1,4 @@
-# Copilot Instructions for Project ENV Manager
+# Copilot Instructions for Project Env Manager
 
 ## Project Overview
 

@@ -1,0 +1,176 @@
+name: Release Chrome Extension
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Determine release type
+        id: release_type
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "IS_TAG=true" >> $GITHUB_OUTPUT
+            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "PRERELEASE=false" >> $GITHUB_OUTPUT
+          else
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            echo "IS_TAG=false" >> $GITHUB_OUTPUT
+            echo "VERSION=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "PRERELEASE=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get previous tag
+        id: prev_tag
+        if: steps.release_type.outputs.IS_TAG == 'true'
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 ${{ steps.release_type.outputs.VERSION }}^ 2>/dev/null || echo "")
+          echo "PREV_TAG=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate commit summary for tag release
+        id: commits_tag
+        if: steps.release_type.outputs.IS_TAG == 'true'
+        run: |
+          VERSION="${{ steps.release_type.outputs.VERSION }}"
+          PREV_TAG="${{ steps.prev_tag.outputs.PREV_TAG }}"
+          DATE=$(date +%Y-%m-%d)
+          VERSION_NUM="${VERSION#v}"
+
+          echo "Generating changelog for $VERSION (since $PREV_TAG)"
+
+          # Start building the changelog entry
+          CHANGELOG_ENTRY="## [$VERSION_NUM] - $DATE"$'\n\n'
+
+          # Get commits since last tag (or all commits if no previous tag)
+          # Format: "- commit message (@username)"
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (@%an)" $PREV_TAG..$VERSION)
+          else
+            COMMITS=$(git log --pretty=format:"- %s (@%an)" $VERSION)
+          fi
+
+          CHANGELOG_ENTRY+="### Changes"$'\n\n'
+          CHANGELOG_ENTRY+="$COMMITS"$'\n'
+
+          # Save to file for later use
+          echo "$CHANGELOG_ENTRY" > /tmp/new_changelog_entry.txt
+
+          # Output for release body
+          echo "CHANGELOG_ENTRY<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_ENTRY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate commit info for pre-release
+        id: commits_dev
+        if: steps.release_type.outputs.IS_TAG == 'false'
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
+          COMMIT_SHA=$(git rev-parse --short HEAD)
+
+          BODY="### Development Build"$'\n\n'
+          BODY+="**Commit:** \`$COMMIT_SHA\`"$'\n'
+          BODY+="**Author:** @$COMMIT_AUTHOR"$'\n'
+          BODY+="**Message:** $COMMIT_MSG"$'\n\n'
+          BODY+="⚠️ This is an automated pre-release build. Use for testing only."
+
+          echo "BODY<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        if: steps.release_type.outputs.IS_TAG == 'true'
+        run: |
+          VERSION_NUM="${{ steps.release_type.outputs.VERSION }}"
+          VERSION_NUM="${VERSION_NUM#v}"
+
+          # Check if this version already exists in changelog
+          if grep -q "## \[$VERSION_NUM\]" CHANGELOG.md; then
+            echo "Version $VERSION_NUM already in CHANGELOG.md, skipping update"
+          else
+            # Insert new entry after the header
+            NEW_ENTRY=$(cat /tmp/new_changelog_entry.txt)
+
+            # Create new changelog with entry inserted after first line (header)
+            awk -v entry="$NEW_ENTRY" '
+              /^# Changelog/ { print; getline; print; print ""; print entry; next }
+              { print }
+            ' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+
+            echo "Updated CHANGELOG.md with new entry"
+          fi
+
+      - name: Commit changelog update
+        if: steps.release_type.outputs.IS_TAG == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          # Check if there are changes to commit
+          if git diff --quiet CHANGELOG.md; then
+            echo "No changes to CHANGELOG.md"
+          else
+            git add CHANGELOG.md
+            git commit -m "docs: update CHANGELOG.md for ${{ steps.release_type.outputs.VERSION }}"
+            git push origin HEAD:main
+          fi
+
+      - name: Create release zip
+        run: |
+          cd dist
+          zip -r ../project-env-manager-${{ steps.release_type.outputs.VERSION }}.zip .
+
+      - name: Delete existing dev release
+        if: steps.release_type.outputs.IS_TAG == 'false'
+        run: |
+          gh release delete dev-latest --yes || true
+          git push origin :refs/tags/dev-latest || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release (Tag)
+        if: steps.release_type.outputs.IS_TAG == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ steps.release_type.outputs.VERSION }}
+          body: ${{ steps.commits_tag.outputs.CHANGELOG_ENTRY }}
+          files: project-env-manager-${{ steps.release_type.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
+
+      - name: Create GitHub Pre-Release (Dev)
+        if: steps.release_type.outputs.IS_TAG == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev-latest
+          name: Development Build (${{ steps.release_type.outputs.VERSION }})
+          body: ${{ steps.commits_dev.outputs.BODY }}
+          files: project-env-manager-${{ steps.release_type.outputs.VERSION }}.zip
+          draft: false
+          prerelease: true
