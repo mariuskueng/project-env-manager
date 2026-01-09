@@ -58,7 +58,81 @@
     $(".env-url", root).value = env.url || ""
 
     $(".remove-env", root).addEventListener("click", () => root.remove())
+
+    // Set up drag and drop
+    root.addEventListener("dragstart", handleDragStart)
+    root.addEventListener("dragend", handleDragEnd)
+    root.addEventListener("dragover", handleDragOver)
+    root.addEventListener("drop", handleDrop)
+    root.addEventListener("dragleave", handleDragLeave)
+
     return node
+  }
+
+  let draggedElement = null
+
+  function handleDragStart(e) {
+    draggedElement = this
+    this.classList.add("dragging")
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/html", this.innerHTML)
+  }
+
+  function handleDragEnd(e) {
+    this.classList.remove("dragging")
+    // Remove all drag-over classes
+    $$(".environment-entry").forEach((el) => {
+      el.classList.remove("drag-over")
+    })
+    draggedElement = null
+  }
+
+  function handleDragOver(e) {
+    if (e.preventDefault) {
+      e.preventDefault()
+    }
+    e.dataTransfer.dropEffect = "move"
+
+    const draggingItem = $(".dragging")
+    if (!draggingItem || draggingItem === this) return false
+
+    // Get bounding rectangles
+    const rect = this.getBoundingClientRect()
+    const midpoint = rect.top + rect.height / 2
+
+    // Determine if we should insert before or after
+    if (e.clientY < midpoint) {
+      this.classList.add("drag-over")
+    } else {
+      this.classList.remove("drag-over")
+    }
+
+    return false
+  }
+
+  function handleDrop(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation()
+    }
+
+    if (draggedElement !== this) {
+      // Determine drop position
+      const rect = this.getBoundingClientRect()
+      const midpoint = rect.top + rect.height / 2
+      const parent = this.parentNode
+
+      if (e.clientY < midpoint) {
+        parent.insertBefore(draggedElement, this)
+      } else {
+        parent.insertBefore(draggedElement, this.nextSibling)
+      }
+    }
+
+    return false
+  }
+
+  function handleDragLeave(e) {
+    this.classList.remove("drag-over")
   }
 
   function readProjects() {
