@@ -1,4 +1,10 @@
 # Changelog
+## [0.5.3] - 2026-01-15
+
+### Changes
+
+- Update app icon, fix release action
+
 
 ## [0.5.1] - 2026-01-09
 
