@@ -29,22 +29,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build extension
-        run: npm run build
-
       - name: Determine release type
         id: release_type
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             echo "IS_TAG=true" >> $GITHUB_OUTPUT
             echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            echo "VERSION_NUM=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
             echo "PRERELEASE=false" >> $GITHUB_OUTPUT
           else
             SHORT_SHA=$(git rev-parse --short HEAD)
             echo "IS_TAG=false" >> $GITHUB_OUTPUT
             echo "VERSION=dev-${SHORT_SHA}" >> $GITHUB_OUTPUT
+            echo "VERSION_NUM=" >> $GITHUB_OUTPUT
             echo "PRERELEASE=true" >> $GITHUB_OUTPUT
           fi
+
+      - name: Update manifest version
+        if: steps.release_type.outputs.IS_TAG == 'true'
+        run: |
+          VERSION_NUM="${{ steps.release_type.outputs.VERSION_NUM }}"
+          echo "Setting manifest version to $VERSION_NUM"
+          # Update version in manifest.json using jq
+          jq --arg version "$VERSION_NUM" '.version = $version' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+          cat manifest.json
+
+      - name: Build extension
+        run: npm run build
 
       - name: Get previous tag
         id: prev_tag
@@ -58,9 +69,9 @@ jobs:
         if: steps.release_type.outputs.IS_TAG == 'true'
         run: |
           VERSION="${{ steps.release_type.outputs.VERSION }}"
+          VERSION_NUM="${{ steps.release_type.outputs.VERSION_NUM }}"
           PREV_TAG="${{ steps.prev_tag.outputs.PREV_TAG }}"
           DATE=$(date +%Y-%m-%d)
-          VERSION_NUM="${VERSION#v}"
 
           echo "Generating changelog for $VERSION (since $PREV_TAG)"
 
@@ -104,21 +115,15 @@ jobs:
       - name: Update CHANGELOG.md
         if: steps.release_type.outputs.IS_TAG == 'true'
         run: |
-          VERSION_NUM="${{ steps.release_type.outputs.VERSION }}"
-          VERSION_NUM="${VERSION_NUM#v}"
+          VERSION_NUM="${{ steps.release_type.outputs.VERSION_NUM }}"
 
           # Check if this version already exists in changelog
           if grep -q "## \[$VERSION_NUM\]" CHANGELOG.md; then
             echo "Version $VERSION_NUM already in CHANGELOG.md, skipping update"
           else
-            # Insert new entry after the header
-            NEW_ENTRY=$(cat /tmp/new_changelog_entry.txt)
-
-            # Create new changelog with entry inserted after first line (header)
-            awk -v entry="$NEW_ENTRY" '
-              /^# Changelog/ { print; getline; print; print ""; print entry; next }
-              { print }
-            ' CHANGELOG.md > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+            # Insert new entry after the header line using sed
+            # The 'r' command reads the file and inserts after line 1
+            sed -i "1r /tmp/new_changelog_entry.txt" CHANGELOG.md
 
             echo "Updated CHANGELOG.md with new entry"
           fi
@@ -133,9 +138,14 @@ jobs:
           if git diff --quiet CHANGELOG.md; then
             echo "No changes to CHANGELOG.md"
           else
+            # Fetch main branch and checkout to push changelog update
+            git fetch origin main:main
+            git checkout main
             git add CHANGELOG.md
             git commit -m "docs: update CHANGELOG.md for ${{ steps.release_type.outputs.VERSION }}"
-            git push origin HEAD:main
+            git push origin main
+            # Go back to the tag for release creation
+            git checkout ${{ steps.release_type.outputs.VERSION }}
           fi
 
       - name: Create release zip
@@ -155,6 +165,7 @@ jobs:
         if: steps.release_type.outputs.IS_TAG == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.release_type.outputs.VERSION }}
           name: Release ${{ steps.release_type.outputs.VERSION }}
           body: ${{ steps.commits_tag.outputs.CHANGELOG_ENTRY }}
           files: project-env-manager-${{ steps.release_type.outputs.VERSION }}.zip

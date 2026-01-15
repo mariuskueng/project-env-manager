@@ -24,14 +24,10 @@ function copyExtensionFiles(): Plugin {
       )
 
       // Copy icon files
-      copyFileSync(resolve(__dirname, "icon.png"), resolve(distDir, "icon.png"))
-
-      if (existsSync(resolve(__dirname, "icon.svg"))) {
-        copyFileSync(
-          resolve(__dirname, "icon.svg"),
-          resolve(distDir, "icon.svg"),
-        )
-      }
+      copyFileSync(
+        resolve(__dirname, "./src/assets/icon.png"),
+        resolve(distDir, "icon.png"),
+      )
     },
   }
 }

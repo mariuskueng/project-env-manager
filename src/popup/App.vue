@@ -19,7 +19,6 @@ import {
   buildUrl,
   findMatchingProject,
 } from "@/utils/storage"
-import iconUrl from "@/assets/icon.png"
 
 const projects = ref<Project[]>([])
 const selectedProjectId = ref("")
@@ -129,22 +128,8 @@ onMounted(async () => {
     class="w-80 font-sans p-4 transition-colors"
     :class="isDark ? 'bg-slate-900 text-slate-100' : 'bg-white text-slate-900'"
   >
-    <!-- Header -->
-    <header class="flex items-center gap-2 mb-4">
-      <img :src="iconUrl" alt="icon" class="w-6 h-6" />
-      <h1 class="text-base font-semibold tracking-tight">
-        Project Env Manager
-      </h1>
-    </header>
-
     <!-- Project Selector -->
     <section class="mb-4">
-      <label
-        class="block text-xs font-medium mb-1.5"
-        :class="isDark ? 'text-slate-400' : 'text-slate-500'"
-      >
-        Select Project
-      </label>
       <SelectRoot
         :model-value="selectedProjectId"
         @update:model-value="onProjectChange"
@@ -274,7 +259,7 @@ onMounted(async () => {
         "
         @click.prevent="openOptions"
       >
-        Manage projects
+        Projects
       </a>
       <span
         class="text-xs"
