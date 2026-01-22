@@ -47,6 +47,10 @@ async function loadDataFromUpsunApi(
     return null
   }
 
+  if (bearerToken) {
+    return null
+  }
+
   bearerToken = accessToken
 
   const user = await upsunApiFetch<UpsunUser>("/users/me")
@@ -96,6 +100,9 @@ async function loadDataFromUpsunApi(
     }
   }
 
+  // Reset for next import
+  bearerToken = null
+
   return mergedProjects
 }
 
@@ -105,18 +112,20 @@ export function importFromUpsun(
   return new Promise((resolve, reject) => {
     let upsunPopupTabId: number | null = null
 
-    const upsunTabListener = (tabId: number) => {
+    const upsunTabListener = (
+      tabId: number,
+      _changeInfo: chrome.tabs.TabChangeInfo,
+      _tab: chrome.tabs.Tab,
+    ) => {
       if (tabId === upsunPopupTabId) {
         chrome.scripting
           .executeScript({
             target: { tabId: upsunPopupTabId },
             func: () => {
-              return new Promise<string>((resolve) => {
-                const origFetch = window.fetch
-                window.fetch = ((
-                  input: RequestInfo | URL,
-                  init?: RequestInit,
-                ) => {
+              return new Promise((resolve) => {
+                const origFetch = fetch
+                // @ts-expect-error - overriding global fetch
+                fetch = (input: RequestInfo | URL, init?: RequestInit) => {
                   if (input === "https://auth.upsun.com/oauth2/token") {
                     origFetch(input, init).then(async (data) => {
                       const json = await data.json()
@@ -125,7 +134,7 @@ export function importFromUpsun(
                     return Promise.reject()
                   }
                   return origFetch(input, init)
-                }) as typeof fetch
+                }
               })
             },
             injectImmediately: true,
