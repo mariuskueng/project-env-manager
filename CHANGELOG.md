@@ -1,4 +1,10 @@
 # Changelog
+## [0.5.4] - 2026-01-22
+
+### Changes
+
+- Fix Upsun import logic and reset bearer token
+
 ## [0.5.3] - 2026-01-15
 
 ### Changes
