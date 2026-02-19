@@ -170,11 +170,16 @@ function handleImportFile(event: Event): void {
 async function handleImportFromUpsun(): Promise<void> {
   isLoading.value = true
   try {
-    const importedProjects = await importFromUpsun(projects.value)
-    if (importedProjects) {
+    const importedProjects = await importFromUpsun()
+    if (importedProjects.length > 0) {
       projects.value = ensureEnvironmentIds(importedProjects)
       await saveProjectsToStorage(importedProjects)
-      showNotification("Successfully imported projects from Upsun!", "success")
+      showNotification(
+        `Successfully imported ${importedProjects.length} projects from Upsun!`,
+        "success",
+      )
+    } else {
+      showNotification("No active projects found in Upsun", "info")
     }
   } catch (error) {
     showNotification(

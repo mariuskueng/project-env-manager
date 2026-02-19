@@ -8,17 +8,9 @@ interface UpsunOrganization {
   id: string
 }
 
-interface UpsunOrganizationsResponse {
-  items: UpsunOrganization[]
-}
-
 interface UpsunProject {
   id: string
   title: string
-}
-
-interface UpsunProjectsResponse {
-  items: UpsunProject[]
 }
 
 interface UpsunEnvironment {
@@ -28,10 +20,16 @@ interface UpsunEnvironment {
   edge_hostname: string
 }
 
+interface ItemsResponse<T> {
+  items: T[]
+}
+
+const API_BASE = "https://api.upsun.com"
+
 let bearerToken: string | null = null
 
 async function upsunApiFetch<T>(path: string): Promise<T> {
-  const response = await fetch(`https://api.upsun.com${path}`, {
+  const response = await fetch(`${API_BASE}${path}`, {
     headers: {
       Authorization: `Bearer ${bearerToken}`,
     },
@@ -39,140 +37,93 @@ async function upsunApiFetch<T>(path: string): Promise<T> {
   return response.json() as Promise<T>
 }
 
-async function loadDataFromUpsunApi(
-  accessToken: string,
-  currentProjects: Project[],
-): Promise<Project[] | null> {
-  if (!accessToken) {
-    return null
-  }
-
-  if (bearerToken) {
-    return null
-  }
-
+async function loadDataFromUpsunApi(accessToken: string): Promise<Project[]> {
   bearerToken = accessToken
 
-  const user = await upsunApiFetch<UpsunUser>("/users/me")
-  const organizations = await upsunApiFetch<UpsunOrganizationsResponse>(
-    `/users/${user.id}/organizations`,
-  )
+  try {
+    const user = await upsunApiFetch<UpsunUser>("/users/me")
 
-  const projectsFromUpsun: Project[] = []
-
-  for (const organization of organizations.items) {
-    const projects = await upsunApiFetch<UpsunProjectsResponse>(
-      `/organizations/${organization.id}/projects`,
+    const orgsResponse = await upsunApiFetch<ItemsResponse<UpsunOrganization>>(
+      `/users/${user.id}/organizations`,
     )
+    const organizations = orgsResponse.items
 
-    for (const project of projects.items) {
-      const environmentsFromUpsun = await upsunApiFetch<UpsunEnvironment[]>(
-        `/projects/${project.id}/environments`,
+    const projectsFromUpsun: Project[] = []
+
+    for (const organization of organizations) {
+      const projectsResponse = await upsunApiFetch<ItemsResponse<UpsunProject>>(
+        `/organizations/${organization.id}/projects`,
       )
+      const projects = projectsResponse.items
 
-      const environments: Environment[] = environmentsFromUpsun
-        .filter((e) => e.status === "active")
-        .map((e) => ({
-          name: e.id,
-          url: `https://${e.default_domain ?? e.edge_hostname}`,
-        }))
+      for (const project of projects) {
+        const environmentsFromUpsun = await upsunApiFetch<UpsunEnvironment[]>(
+          `/projects/${project.id}/environments`,
+        )
 
-      if (environments.length === 0) {
-        continue
+        const environments: Environment[] = environmentsFromUpsun
+          .filter((e) => e.status === "active" || e.status === "dirty")
+          .map((e) => ({
+            name: e.id,
+            url: `https://${e.default_domain ?? e.edge_hostname}`,
+          }))
+
+        if (environments.length === 0) continue
+
+        projectsFromUpsun.push({ id: project.title, environments })
       }
-
-      projectsFromUpsun.push({ id: project.title, environments })
     }
+
+    return projectsFromUpsun
+  } finally {
+    bearerToken = null
   }
-
-  // Merge with current projects
-  const mergedProjects: Project[] = [...currentProjects]
-
-  for (const projectFromUpsun of projectsFromUpsun) {
-    const existingIndex = mergedProjects.findIndex(
-      (p) => p.id === projectFromUpsun.id,
-    )
-
-    if (existingIndex >= 0) {
-      mergedProjects[existingIndex].environments = projectFromUpsun.environments
-    } else {
-      mergedProjects.push(projectFromUpsun)
-    }
-  }
-
-  // Reset for next import
-  bearerToken = null
-
-  return mergedProjects
 }
 
-export function importFromUpsun(
-  currentProjects: Project[],
-): Promise<Project[] | null> {
+/**
+ * Opens the Upsun console in a new window and captures the Bearer token
+ * from the Authorization header of any API request via chrome.webRequest.
+ * This avoids fragile fetch interception in the auth page.
+ */
+export function importFromUpsun(): Promise<Project[]> {
   return new Promise((resolve, reject) => {
-    let upsunPopupTabId: number | null = null
+    let popupTabId: number
+    let captured = false
 
-    const upsunTabListener = (
-      tabId: number,
-      _changeInfo: chrome.tabs.TabChangeInfo,
-      _tab: chrome.tabs.Tab,
-    ) => {
-      if (tabId === upsunPopupTabId) {
-        chrome.scripting
-          .executeScript({
-            target: { tabId: upsunPopupTabId },
-            func: () => {
-              return new Promise((resolve) => {
-                const origFetch = fetch
-                // @ts-expect-error - overriding global fetch
-                fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-                  if (input === "https://auth.upsun.com/oauth2/token") {
-                    origFetch(input, init).then(async (data) => {
-                      const json = await data.json()
-                      resolve(json.access_token)
-                    })
-                    return Promise.reject()
-                  }
-                  return origFetch(input, init)
-                }
-              })
-            },
-            injectImmediately: true,
-            world: "MAIN",
-          })
-          .then(async (injectionResults) => {
-            for (const { result } of injectionResults) {
-              if (typeof result === "string") {
-                chrome.tabs.remove(upsunPopupTabId!)
-                chrome.tabs.onUpdated.removeListener(upsunTabListener)
+    const onHeaders = (details: chrome.webRequest.WebRequestHeadersDetails) => {
+      if (captured) return
 
-                try {
-                  const mergedProjects = await loadDataFromUpsunApi(
-                    result,
-                    currentProjects,
-                  )
-                  resolve(mergedProjects)
-                } catch (error) {
-                  reject(error)
-                }
-              }
-            }
-          })
-          .catch(() => {
-            // Ignore injection errors during page load
-          })
-      }
+      const authHeader = details.requestHeaders?.find(
+        (h) => h.name.toLowerCase() === "authorization",
+      )
+      if (!authHeader?.value?.startsWith("Bearer ")) return
+
+      captured = true
+      const token = authHeader.value.slice(7)
+
+      chrome.webRequest.onBeforeSendHeaders.removeListener(onHeaders)
+      chrome.tabs.remove(popupTabId)
+
+      loadDataFromUpsunApi(token).then(resolve).catch(reject)
     }
+
+    chrome.webRequest.onBeforeSendHeaders.addListener(
+      onHeaders,
+      { urls: ["https://api.upsun.com/*"] },
+      ["requestHeaders", "extraHeaders"],
+    )
 
     chrome.windows
       .create({
         type: "normal",
-        url: "https://auth.upsun.com",
+        url: "https://console.upsun.com",
       })
       .then((w) => {
-        upsunPopupTabId = w.tabs!.at(0)!.id!
-        chrome.tabs.onUpdated.addListener(upsunTabListener)
+        popupTabId = w.tabs!.at(0)!.id!
       })
-      .catch(reject)
+      .catch((err) => {
+        chrome.webRequest.onBeforeSendHeaders.removeListener(onHeaders)
+        reject(err)
+      })
   })
 }
