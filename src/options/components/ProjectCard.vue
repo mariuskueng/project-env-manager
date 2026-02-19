@@ -187,7 +187,7 @@ function moveEnvironment(fromIndex: number, toIndex: number): void {
           :is-dark="isDark"
           @update="updateEnvironment(index, $event)"
           @remove="removeEnvironment(index)"
-          @move="moveEnvironment(index, $event)"
+          @move="moveEnvironment($event, index)"
         />
       </div>
     </div>
