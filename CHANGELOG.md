@@ -1,4 +1,13 @@
 # Changelog
+## [0.5.5] - 2026-02-19
+
+### Changes
+
+- Fix moveEnvironment argument order
+- Upgrade vue-tsc to 3.2.4 and refresh lockfile
+- Use webRequest to import projects from Upsun
+- docs: update CHANGELOG.md for v0.5.4
+
 ## [0.5.4] - 2026-01-22
 
 ### Changes
