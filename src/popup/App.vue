@@ -10,11 +10,14 @@ import {
   SelectItem,
   SelectItemText,
   SelectItemIndicator,
+  SwitchRoot,
+  SwitchThumb,
 } from "reka-ui"
 import type { Project } from "@/types"
 import {
   getConfig,
   setSelectedProject,
+  setRedirectCurrentTab,
   isUrlOnProject,
   buildUrl,
   findMatchingProject,
@@ -25,6 +28,7 @@ const selectedProjectId = ref("")
 const currentTabUrl = ref("")
 const version = ref("")
 const isDark = ref(false)
+const redirectCurrentTab = ref(false)
 
 const selectedProject = computed<Project | null>(() => {
   return projects.value.find((p) => p.id === selectedProjectId.value) || null
@@ -53,7 +57,17 @@ async function openEnv(envName: string): Promise<void> {
   const url = onProject
     ? buildUrl(env.url, tab.url)
     : new URL(env.url).toString()
-  await chrome.tabs.create({ url })
+
+  if (redirectCurrentTab.value && tab.id) {
+    await chrome.tabs.update(tab.id, { url })
+  } else {
+    await chrome.tabs.create({ url })
+  }
+}
+
+async function onRedirectChange(value: boolean): Promise<void> {
+  redirectCurrentTab.value = value
+  await setRedirectCurrentTab(value)
 }
 
 async function goToLogin(): Promise<void> {
@@ -103,6 +117,7 @@ onMounted(async () => {
 
   const config = await getConfig()
   projects.value = config.projects
+  redirectCurrentTab.value = config.redirectCurrentTab ?? false
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   currentTabUrl.value = tab?.url || ""
@@ -243,6 +258,30 @@ onMounted(async () => {
         Login
       </button>
     </section>
+
+    <!-- Redirect toggle -->
+    <div class="flex items-center gap-2 mb-3">
+      <SwitchRoot
+        v-model="redirectCurrentTab"
+        class="w-8 h-5 flex rounded-full relative transition-colors cursor-pointer data-[state=unchecked]:bg-slate-300 data-[state=checked]:bg-brand-dark dark:data-[state=unchecked]:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-dark focus-visible:ring-offset-2"
+        :class="
+          isDark
+            ? 'focus-visible:ring-offset-slate-900'
+            : 'focus-visible:ring-offset-white'
+        "
+        @update:model-value="onRedirectChange"
+      >
+        <SwitchThumb
+          class="w-3.5 h-3.5 my-auto bg-white rounded-full shadow-sm transition-transform translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[15px]"
+        />
+      </SwitchRoot>
+      <span
+        class="text-xs select-none"
+        :class="isDark ? 'text-slate-300' : 'text-slate-600'"
+      >
+        Redirect current tab
+      </span>
+    </div>
 
     <!-- Footer -->
     <footer class="flex items-baseline justify-between">

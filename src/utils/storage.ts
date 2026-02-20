@@ -14,8 +14,12 @@ const defaultConfig: StorageConfig = {
 }
 
 export async function getConfig(): Promise<StorageConfig> {
-  const res = await chrome.storage.sync.get(["projects", "selectedProjectId"])
-  let { projects, selectedProjectId } = res as StorageConfig
+  const res = await chrome.storage.sync.get([
+    "projects",
+    "selectedProjectId",
+    "redirectCurrentTab",
+  ])
+  let { projects, selectedProjectId, redirectCurrentTab } = res as StorageConfig
 
   if (!projects || !Array.isArray(projects) || projects.length === 0) {
     projects = defaultConfig.projects
@@ -26,7 +30,7 @@ export async function getConfig(): Promise<StorageConfig> {
     selectedProjectId = projects[0].id
   }
 
-  return { projects, selectedProjectId }
+  return { projects, selectedProjectId, redirectCurrentTab: redirectCurrentTab ?? false }
 }
 
 export async function saveProjects(projects: Project[]): Promise<void> {
@@ -51,6 +55,10 @@ export async function saveProjects(projects: Project[]): Promise<void> {
 
 export async function setSelectedProject(projectId: string): Promise<void> {
   await chrome.storage.sync.set({ selectedProjectId: projectId })
+}
+
+export async function setRedirectCurrentTab(value: boolean): Promise<void> {
+  await chrome.storage.sync.set({ redirectCurrentTab: value })
 }
 
 export function normalizeHost(h: string): string {

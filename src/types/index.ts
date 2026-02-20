@@ -24,6 +24,7 @@ export interface Project {
 export interface StorageConfig {
   projects: Project[]
   selectedProjectId?: string
+  redirectCurrentTab?: boolean
 }
 
 /** Notification types for toast messages */
