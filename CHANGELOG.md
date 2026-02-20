@@ -1,4 +1,11 @@
 # Changelog
+## [0.5.7] - 2026-02-20
+
+### Changes
+
+- Merge Upsun imports and persist projects
+- docs: update CHANGELOG.md for v0.5.6
+
 ## [0.5.6] - 2026-02-20
 
 ### Changes
