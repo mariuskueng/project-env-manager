@@ -237,10 +237,7 @@ onMounted(async () => {
       </div>
 
       <button
-        class="px-3 py-1.5 rounded-lg text-sm font-medium bg-brand-dark text-white hover:bg-brand-dark-light transition-colors cursor-pointer border-none outline-none focus:ring-2 focus:ring-brand-dark focus:ring-offset-2"
-        :class="
-          isDark ? 'focus:ring-offset-slate-900' : 'focus:ring-offset-white'
-        "
+        class="px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-white hover:bg-slate-600 transition-colors cursor-pointer border-none outline-none focus:ring-2 focus:ring-slate-600 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
         @click="goToLogin"
       >
         Login
