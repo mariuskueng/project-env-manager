@@ -62,7 +62,12 @@ async function loadDataFromUpsunApi(accessToken: string): Promise<Project[]> {
         )
 
         const environments: Environment[] = environmentsFromUpsun
-          .filter((e) => e.status === "active" || e.status === "dirty")
+          .filter(
+            (e) =>
+              e.status === "active" ||
+              e.status === "dirty" ||
+              e.status === "paused",
+          )
           .map((e) => ({
             name: e.id,
             url: `https://${e.default_domain ?? e.edge_hostname}`,
