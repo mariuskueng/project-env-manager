@@ -1,4 +1,10 @@
 # Changelog
+## [0.5.6] - 2026-02-20
+
+### Changes
+
+- Include paused environments from Upsun API
+
 ## [0.5.5] - 2026-02-19
 
 ### Changes
