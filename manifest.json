@@ -3,7 +3,7 @@
   "description": "Quick access for Dev/Staging/Production links for multiple projects (with Upsun support)",
   "version": "0.0.0",
   "manifest_version": 3,
-  "permissions": ["storage", "tabs", "activeTab", "scripting", "webRequest"],
+  "permissions": ["storage", "tabs", "activeTab", "webRequest"],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
