@@ -1,4 +1,11 @@
 # Changelog
+## [0.6.0] - 2026-02-20
+
+### Changes
+
+- Add redirect-current-tab toggle and storage
+- Use neutral slate styles for login button
+
 ## [0.5.7] - 2026-02-20
 
 ### Changes
