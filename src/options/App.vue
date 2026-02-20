@@ -119,7 +119,7 @@ function handleImportFile(event: Event): void {
   if (!file) return
 
   const reader = new FileReader()
-  reader.onload = function (e) {
+  reader.onload = async function (e) {
     try {
       const config = JSON.parse(e.target?.result as string)
 
@@ -153,6 +153,7 @@ function handleImportFile(event: Event): void {
       }
 
       projects.value = ensureEnvironmentIds(config.projects)
+      await saveProjectsToStorage(config.projects)
       showNotification(
         `Successfully imported ${config.projects.length} project(s)!`,
         "success",
@@ -170,12 +171,21 @@ function handleImportFile(event: Event): void {
 async function handleImportFromUpsun(): Promise<void> {
   isLoading.value = true
   try {
-    const importedProjects = await importFromUpsun()
-    if (importedProjects.length > 0) {
-      projects.value = ensureEnvironmentIds(importedProjects)
-      await saveProjectsToStorage(importedProjects)
+    const upsunProjects = await importFromUpsun()
+    if (upsunProjects.length > 0) {
+      const merged = [...projects.value]
+      for (const upsunProject of upsunProjects) {
+        const existingIndex = merged.findIndex((p) => p.id === upsunProject.id)
+        if (existingIndex >= 0) {
+          merged[existingIndex] = upsunProject
+        } else {
+          merged.push(upsunProject)
+        }
+      }
+      projects.value = ensureEnvironmentIds(merged)
+      await saveProjectsToStorage(merged)
       showNotification(
-        `Successfully imported ${importedProjects.length} projects from Upsun!`,
+        `Successfully imported ${upsunProjects.length} projects from Upsun!`,
         "success",
       )
     } else {
