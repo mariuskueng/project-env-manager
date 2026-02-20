@@ -1,4 +1,10 @@
 # Changelog
+## [0.6.1] - 2026-02-20
+
+### Changes
+
+- Remove 'scripting' permission from manifest
+
 ## [0.6.0] - 2026-02-20
 
 ### Changes
