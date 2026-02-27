@@ -1,0 +1,106 @@
+seo:
+  title: Project Env Manager - Switch Environments in One Click
+  description: A Chrome extension to instantly switch between Dev, Staging, and Production environments for all your web projects.
+title: Switch environments in [one click]{.text-primary}
+description: A Chrome extension for web developers to instantly jump between Dev, Staging, Production, or any custom environment - right from the browser toolbar.
+hero:
+  links:
+    - label: Install from Chrome Web Store
+      icon: i-simple-icons-googlechrome
+      trailing: false
+      color: primary
+      to: "https://chromewebstore.google.com/detail/project-env-manager/mlngdjipcjkcbfndloaaebfliebllbdh"
+      target: _blank
+      size: xl
+    - label: View on GitHub
+      icon: i-simple-icons-github
+      size: xl
+      color: neutral
+      variant: outline
+      to: https://github.com/mariuskueng/project-env-manager
+      target: _blank
+section:
+  title: "Stop juggling [bookmarks]{.text-primary}"
+  description: Select a project from the dropdown, click an environment, and you're there. The extension detects which project you're on and preserves your current path when switching.
+  images:
+    mobile: "/project-env-manager/screenshots/popup-overview.png"
+    desktop: "/project-env-manager/screenshots/popup-overview.png"
+  features:
+    - title: Manage all your projects
+      description: Add unlimited projects, each with their own set of environments. Keep everything organized in one place instead of scattered bookmarks.
+      class: border-l border-primary pl-4
+    - title: Instant environment switching
+      description: One click to switch between dev, staging, production, or any custom environment. Your current page path, query parameters, and hash are preserved.
+      class: border-l border-default pt-4 pl-4
+    - title: Smart project detection
+      description: The extension auto-detects which project and environment you're on based on the current URL, highlighting it in the popup.
+      class: border-l border-default pt-4 pl-4
+features:
+  title: Everything you need to [manage environments]{.text-primary}
+  description: Built for web developers, QA engineers, and DevOps teams who work across multiple environments daily.
+  features:
+    - title: One-Click Switching
+      description: Jump between dev, staging, production, or any custom environment with a single click.
+      icon: i-lucide-mouse-pointer-click
+      ui:
+        leading: bg-accented/50 p-2 rounded-md border border-muted border-dashed
+    - title: Path Preservation
+      description: Your current page path, query parameters, and URL hash are preserved when switching environments.
+      icon: i-lucide-link
+      ui:
+        leading: bg-accented/50 p-2 rounded-md border border-muted border-dashed
+    - title: Upsun Import
+      description: Import all your projects and environments directly from Upsun (Platform.sh) with one click.
+      icon: i-lucide-cloud-download
+      ui:
+        leading: bg-accented/50 p-2 rounded-md border border-muted border-dashed
+    - title: Redirect or New Tab
+      description: Choose whether clicking an environment opens a new tab or redirects the current one.
+      icon: i-lucide-arrow-right-left
+      ui:
+        leading: bg-accented/50 p-2 rounded-md border border-muted border-dashed
+    - title: Import & Export Config
+      description: Share your project configuration with your team via JSON import/export.
+      icon: i-lucide-share-2
+      ui:
+        leading: bg-accented/50 p-2 rounded-md border border-muted border-dashed
+    - title: Dark Mode
+      description: Light and dark mode that follows your system preference for comfortable use any time.
+      icon: i-lucide-moon
+      ui:
+        leading: bg-accented/50 p-2 rounded-md border border-muted border-dashed
+steps:
+  title: Get started in [3 steps]{.text-primary}
+  description: From install to switching environments in under a minute.
+  items:
+    - title: Install the Extension
+      description: Add Project Env Manager to Chrome from the Chrome Web Store. No configuration needed to get started.
+      icon: i-lucide-download
+      image:
+        light: "/project-env-manager/screenshots/step-install.png"
+        dark: "/project-env-manager/screenshots/step-install.png"
+    - title: Configure Your Projects
+      description: Add your projects and their environment URLs in the options page. Or import them from Upsun or a JSON config file.
+      icon: i-lucide-settings
+      image:
+        light: "/project-env-manager/screenshots/step-configure.png"
+        dark: "/project-env-manager/screenshots/step-configure.png"
+    - title: Switch Environments
+      description: Click the extension icon, select your project, and jump to any environment. Your current path is preserved automatically.
+      icon: i-lucide-zap
+      image:
+        light: "/project-env-manager/screenshots/step-switch.png"
+        dark: "/project-env-manager/screenshots/step-switch.png"
+cta:
+  title: Ready to stop juggling [bookmarks]{.text-primary}?
+  description: Install Project Env Manager and switch between environments in one click. Free and open source.
+  links:
+    - label: Install from Chrome Web Store
+      to: "https://chromewebstore.google.com/detail/project-env-manager/mlngdjipcjkcbfndloaaebfliebllbdh"
+      target: _blank
+      trailingIcon: i-lucide-arrow-right
+    - label: View on GitHub
+      to: "https://github.com/mariuskueng/project-env-manager"
+      target: _blank
+      variant: subtle
+      icon: i-simple-icons-github

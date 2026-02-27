@@ -30,7 +30,11 @@ export async function getConfig(): Promise<StorageConfig> {
     selectedProjectId = projects[0].id
   }
 
-  return { projects, selectedProjectId, redirectCurrentTab: redirectCurrentTab ?? false }
+  return {
+    projects,
+    selectedProjectId,
+    redirectCurrentTab: redirectCurrentTab ?? false,
+  }
 }
 
 export async function saveProjects(projects: Project[]): Promise<void> {
